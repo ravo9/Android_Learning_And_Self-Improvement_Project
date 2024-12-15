@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.ai.client.generativeai.GenerativeModel
+import com.google.ai.client.generativeai.type.asTextOrNull
 import com.google.ai.client.generativeai.type.content
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +19,7 @@ class BakingViewModel : ViewModel() {
         _uiState.asStateFlow()
 
     private val generativeModel = GenerativeModel(
-        modelName = "gemini-pro-vision",
+        modelName = "gemini-1.5-flash",
         apiKey = BuildConfig.apiKey
     )
 
@@ -36,8 +37,8 @@ class BakingViewModel : ViewModel() {
                         text(prompt)
                     }
                 )
-                response.text?.let { outputContent ->
-                    _uiState.value = UiState.Success(outputContent)
+                response.candidates.first().content.parts.first().asTextOrNull()?.let {
+                    _uiState.value = UiState.Success(it)
                 }
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.localizedMessage ?: "")
