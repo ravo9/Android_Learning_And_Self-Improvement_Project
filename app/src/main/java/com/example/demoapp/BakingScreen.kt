@@ -1,9 +1,7 @@
 package com.example.demoapp
 
 import android.graphics.BitmapFactory
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,8 +12,11 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -76,21 +78,24 @@ fun BakingScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             itemsIndexed(images) { index, image ->
-                var imageModifier = Modifier
-                    .padding(start = 8.dp, end = 8.dp)
+                val isSelected = index == selectedImage.intValue
+                val roundedCornersValue = 16.dp
+                val imageModifier = Modifier
+                    .padding(horizontal = 8.dp)
                     .requiredSize(200.dp)
-                    .clickable {
-                        selectedImage.intValue = index
-                    }
-                if (index == selectedImage.intValue) {
-                    imageModifier =
-                        imageModifier.border(BorderStroke(4.dp, MaterialTheme.colorScheme.primary))
+                    .clip(RoundedCornerShape(roundedCornersValue))
+                    .clickable { selectedImage.intValue = index }
+                Card(
+                    modifier = imageModifier,
+                    shape = RoundedCornerShape(roundedCornersValue),
+                    elevation = CardDefaults.cardElevation(if (isSelected) 8.dp else 4.dp),
+                ) {
+                    Image(
+                        painter = painterResource(image),
+                        contentDescription = stringResource(imageDescriptions[index]),
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
-                Image(
-                    painter = painterResource(image),
-                    contentDescription = stringResource(imageDescriptions[index]),
-                    modifier = imageModifier
-                )
             }
         }
 
