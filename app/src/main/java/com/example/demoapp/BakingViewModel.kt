@@ -12,6 +12,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+object ModelNames {
+    const val GEMINI_1_5_FLASH = "gemini-1.5-flash"
+    const val GEMINI_2_0_FLASH_EXP = "gemini-2.0-flash-exp"
+}
+
 class BakingViewModel : ViewModel() {
     private val _uiState: MutableStateFlow<UiState> =
         MutableStateFlow(UiState.Initial)
@@ -19,7 +24,7 @@ class BakingViewModel : ViewModel() {
         _uiState.asStateFlow()
 
     private val generativeModel = GenerativeModel(
-        modelName = "gemini-1.5-flash",
+        modelName = ModelNames.GEMINI_2_0_FLASH_EXP,
         apiKey = BuildConfig.apiKey
     )
 

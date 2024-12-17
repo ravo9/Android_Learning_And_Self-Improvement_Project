@@ -15,12 +15,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,11 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 val images = arrayOf(
-    // Image generated using Gemini from the prompt "cupcake image"
     R.drawable.baked_goods_1,
-    // Image generated using Gemini from the prompt "cookies images"
     R.drawable.baked_goods_2,
-    // Image generated using Gemini from the prompt "cake images"
     R.drawable.baked_goods_3,
 )
 val imageDescriptions = arrayOf(
@@ -102,14 +100,15 @@ fun BakingScreen(
         Row(
             modifier = Modifier.padding(all = 16.dp)
         ) {
-            TextField(
+            OutlinedTextField(
                 value = prompt,
-                label = { Text(stringResource(R.string.label_prompt)) },
                 onValueChange = { prompt = it },
+                label = { Text(stringResource(R.string.label_prompt)) },
                 modifier = Modifier
                     .weight(0.8f)
                     .padding(end = 16.dp)
-                    .align(Alignment.CenterVertically)
+                    .align(Alignment.CenterVertically),
+                shape = RoundedCornerShape(12.dp),
             )
 
             Button(
@@ -122,7 +121,8 @@ fun BakingScreen(
                 },
                 enabled = prompt.isNotEmpty(),
                 modifier = Modifier
-                    .align(Alignment.CenterVertically)
+                    .align(Alignment.CenterVertically),
+                elevation = ButtonDefaults.elevatedButtonElevation(),
             ) {
                 Text(text = stringResource(R.string.action_go))
             }
