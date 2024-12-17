@@ -37,7 +37,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 val images = arrayOf(
@@ -67,9 +69,13 @@ fun BakingScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         Text(
-            text = stringResource(R.string.baking_title),
-            style = MaterialTheme.typography.titleLarge,
-            modifier = Modifier.padding(16.dp)
+            text = stringResource(R.string.baking_title).uppercase(),
+            style = MaterialTheme.typography.titleLarge.copy(
+                letterSpacing = 1.sp
+            ),
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.CenterHorizontally)
         )
 
         LazyRow(
