@@ -30,10 +30,9 @@ class BakingViewModel(
     private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    fun sendLocationBasedPrompt(bitmap: Bitmap) {
+    fun sendLocationBasedPrompt() {
         _uiState.value = UiState.Loading
 
-        // Fetch location asynchronously
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val location: Location? = locationRepository.getCurrentLocation()
@@ -51,7 +50,8 @@ class BakingViewModel(
 
     private fun createLocationPrompt(location: Location): String {
         return "Tell me interesting things about this location: " +
-                "Latitude: ${location.latitude}, Longitude: ${location.longitude}"
+                "Latitude: ${location.latitude}, Longitude: ${location.longitude}" +
+                "Do not mention these values in response. Tell me about tourist spots, restaurants etc."
     }
 
     fun sendPrompt(

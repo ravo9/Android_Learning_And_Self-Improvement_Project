@@ -1,11 +1,13 @@
 <resources>
     <string name="app_name">DemoApp</string>
     <string name="action_go">Go</string>
+    <string name="action_start">Let\'s start, tell me where I am</string>
     <string name="main_screen_title">Travel with Gemini</string>
     <string name="label_prompt">Prompt</string>
-    <string name="prompt_placeholder">Let me tell you something about where you are…</string>
-    <string name="image1_description">Cupcake</string>
-    <string name="image2_description">Cookies</string>
-    <string name="image3_description">Cake</string>
+    <string name="prompt_placeholder">Feel free to ask me more about this place!</string>
+    <string name="image1_description">AI-generated scenery image</string>
+    <string name="image2_description">AI-generated scenery image</string>
+    <string name="image3_description">AI-generated scenery image</string>
+    <string name="image4_description">AI-generated scenery image</string>
     <string name="results_placeholder">(Results will appear here)</string>
 </resources>
