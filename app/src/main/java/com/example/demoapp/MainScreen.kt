@@ -44,6 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import android.Manifest
+import androidx.compose.foundation.layout.height
 import androidx.compose.ui.layout.ContentScale
 import com.google.accompanist.permissions.isGranted
 
@@ -80,6 +81,7 @@ fun BakingScreen() {
         var prompt by rememberSaveable { mutableStateOf(placeholderPrompt) }
         var result by rememberSaveable { mutableStateOf(placeholderResult) }
         val uiState by bakingViewModel.uiState.collectAsState()
+        val buttonHeight = 56.dp
 
         Column(
             modifier = Modifier.fillMaxSize()
@@ -98,17 +100,13 @@ fun BakingScreen() {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 itemsIndexed(images) { index, image ->
-                    val isSelected = index == selectedImage.intValue
                     val roundedCornersValue = 16.dp
-                    val imageModifier = Modifier
-                        .padding(horizontal = 8.dp)
-                        .requiredSize(180.dp)
-                        .clip(RoundedCornerShape(roundedCornersValue))
-                        .clickable { selectedImage.intValue = index }
                     Card(
-                        modifier = imageModifier,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .requiredSize(180.dp),
                         shape = RoundedCornerShape(roundedCornersValue),
-                        elevation = CardDefaults.cardElevation(if (isSelected) 12.dp else 20.dp),
+                        elevation = CardDefaults.cardElevation(50.dp),
                     ) {
                         Image(
                             painter = painterResource(image),
@@ -124,16 +122,11 @@ fun BakingScreen() {
                 modifier = Modifier.padding(all = 16.dp)
             ) {
                 Button(
-                    onClick = {
-                        val bitmap = BitmapFactory.decodeResource(
-                            context.resources,
-                            images[selectedImage.intValue]
-                        )
-                        bakingViewModel.sendLocationBasedPrompt()
-                    },
+                    onClick = { bakingViewModel.sendLocationBasedPrompt() },
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .height(buttonHeight),
                     elevation = ButtonDefaults.elevatedButtonElevation(),
                 ) {
                     Text(text = stringResource(R.string.action_start))
@@ -164,7 +157,8 @@ fun BakingScreen() {
                     },
                     enabled = prompt.isNotEmpty(),
                     modifier = Modifier
-                        .align(Alignment.CenterVertically),
+                        .align(Alignment.CenterVertically)
+                        .height(buttonHeight),
                     elevation = ButtonDefaults.elevatedButtonElevation(),
                 ) {
                     Text(text = stringResource(R.string.action_go))
