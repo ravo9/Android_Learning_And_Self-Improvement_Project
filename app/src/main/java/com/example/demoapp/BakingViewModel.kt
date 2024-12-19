@@ -62,10 +62,13 @@ class BakingViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                var enhancedPrompt = prompt
+                locationRepository.getCurrentLocation()?.let {
+                    enhancedPrompt += ". Please answer in relation to the place $it but do not mention these values in answer."
+                }
                 val response = generativeModel.generateContent(
                     content {
-//                        image(bitmap)
-                        text(prompt)
+                        text(enhancedPrompt)
                     }
                 )
                 response.candidates.first().content.parts.first().asTextOrNull()?.let {
