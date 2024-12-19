@@ -3,18 +3,19 @@ package com.example.demoapp
 import android.Manifest
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -57,15 +58,11 @@ val images = arrayOf(
 @Composable
 fun BakingScreen() {
     val context = LocalContext.current
-    val bakingViewModel: BakingViewModel = viewModel(
-        factory = BakingViewModelFactory(context)
-    )
+    val bakingViewModel: BakingViewModel = viewModel(factory = BakingViewModelFactory(context))
 
     val locationPermissionState = rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
     if (!locationPermissionState.status.isGranted) {
-        LaunchedEffect(Unit) {
-            locationPermissionState.launchPermissionRequest()
-        }
+        LaunchedEffect(Unit) { locationPermissionState.launchPermissionRequest() }
     } else {
         val buttonHeight = 56.dp
         val placeholderResult = stringResource(R.string.results_placeholder)
@@ -74,101 +71,101 @@ fun BakingScreen() {
         var result by rememberSaveable { mutableStateOf(placeholderResult) }
         val uiState by bakingViewModel.uiState.collectAsState()
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = stringResource(R.string.main_screen_title).uppercase(),
-                style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.8.sp),
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.CenterHorizontally),
-            )
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            item {
+                Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.main_screen_title).uppercase(),
+                        style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.8.sp),
+                        modifier = Modifier.align(Alignment.Center),
+                    )
+                }
+            }
 
-            LazyRow(modifier = Modifier.fillMaxWidth()) {
-                itemsIndexed(images) { index, image ->
-                    val roundedCornersValue = 16.dp
-                    Card(
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .requiredSize(130.dp),
-                        shape = RoundedCornerShape(roundedCornersValue),
-                        elevation = CardDefaults.cardElevation(50.dp),
-                    ) {
-                        Image(
-                            painter = painterResource(image),
-                            contentDescription = stringResource(R.string.ai_image_description),
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                        )
+            item {
+                LazyRow(modifier = Modifier.fillMaxWidth()) {
+                    itemsIndexed(images) { index, image ->
+                        val roundedCornersValue = 16.dp
+                        Card(
+                            modifier = Modifier.padding(8.dp).requiredSize(130.dp),
+                            shape = RoundedCornerShape(roundedCornersValue),
+                            elevation = CardDefaults.cardElevation(50.dp),
+                        ) {
+                            Image(
+                                painter = painterResource(image),
+                                contentDescription = stringResource(R.string.ai_image_description),
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                            )
+                        }
                     }
                 }
             }
 
-            Row(modifier = Modifier.padding(all = 16.dp)) {
-                Button(
-                    onClick = { bakingViewModel.sendLocationBasedPrompt() },
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .fillMaxWidth()
-                        .height(buttonHeight),
-                    elevation = ButtonDefaults.elevatedButtonElevation(),
-                ) {
-                    Text(text = stringResource(R.string.action_start))
+            item {
+                Row(modifier = Modifier.padding(all = 16.dp)) {
+                    Button(
+                        onClick = { bakingViewModel.sendLocationBasedPrompt() },
+                        modifier = Modifier.fillMaxWidth().height(buttonHeight),
+                        elevation = ButtonDefaults.elevatedButtonElevation(),
+                    ) { Text(text = stringResource(R.string.action_start)) }
                 }
             }
 
-            Row(modifier = Modifier.padding(all = 16.dp)) {
-                OutlinedTextField(
-                    value = prompt,
-                    onValueChange = { prompt = it },
-                    placeholder = { Text(stringResource(R.string.prompt_placeholder)) },
-                    modifier = Modifier
-                        .weight(0.8f)
-                        .padding(end = 16.dp)
-                        .align(Alignment.CenterVertically),
-                    shape = RoundedCornerShape(12.dp),
-                    minLines = 2,
-                )
+            item {
+                Row(modifier = Modifier.padding(all = 16.dp)) {
+                    OutlinedTextField(
+                        value = prompt,
+                        onValueChange = { prompt = it },
+                        placeholder = { Text(stringResource(R.string.prompt_placeholder)) },
+                        modifier = Modifier
+                            .weight(0.8f)
+                            .padding(end = 16.dp)
+                            .align(Alignment.CenterVertically),
+                        shape = RoundedCornerShape(12.dp),
+                        minLines = 2,
+                    )
 
-                Button(
-                    onClick = {
-                        val bitmap = BitmapFactory.decodeResource(
-                            context.resources,
-                            images[selectedImage.intValue]
+                    Button(
+                        onClick = {
+                            val bitmap = BitmapFactory.decodeResource(
+                                context.resources,
+                                images[selectedImage.intValue]
+                            )
+                            bakingViewModel.sendPrompt(bitmap, prompt)
+                        },
+                        enabled = prompt.isNotEmpty(),
+                        modifier = Modifier.align(Alignment.CenterVertically).height(buttonHeight),
+                        elevation = ButtonDefaults.elevatedButtonElevation(),
+                    ) { Text(text = stringResource(R.string.action_go)) }
+                }
+            }
+
+            item {
+                if (uiState is UiState.Loading) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(180.dp)
+                                .align(Alignment.Center),
                         )
-                        bakingViewModel.sendPrompt(bitmap, prompt)
-                    },
-                    enabled = prompt.isNotEmpty(),
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .height(buttonHeight),
-                    elevation = ButtonDefaults.elevatedButtonElevation(),
-                ) {
-                    Text(text = stringResource(R.string.action_go))
+                    }
+                } else {
+                    var textColor = MaterialTheme.colorScheme.onSurface
+                    if (uiState is UiState.Error) {
+                        textColor = MaterialTheme.colorScheme.error
+                        result = (uiState as UiState.Error).errorMessage
+                    } else if (uiState is UiState.Success) {
+                        textColor = MaterialTheme.colorScheme.onSurface
+                        result = (uiState as UiState.Success).outputText
+                    }
+                    Text(
+                        text = result,
+                        textAlign = TextAlign.Start,
+                        color = textColor,
+                        modifier = Modifier.fillMaxWidth().padding(16.dp).heightIn(min = 0.dp),
+                    )
                 }
-            }
-
-            if (uiState is UiState.Loading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-            } else {
-                var textColor = MaterialTheme.colorScheme.onSurface
-                if (uiState is UiState.Error) {
-                    textColor = MaterialTheme.colorScheme.error
-                    result = (uiState as UiState.Error).errorMessage
-                } else if (uiState is UiState.Success) {
-                    textColor = MaterialTheme.colorScheme.onSurface
-                    result = (uiState as UiState.Success).outputText
-                }
-                val scrollState = rememberScrollState()
-                Text(
-                    text = result,
-                    textAlign = TextAlign.Start,
-                    color = textColor,
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally)
-                        .padding(16.dp)
-                        .fillMaxSize()
-                        .verticalScroll(scrollState)
-                )
             }
         }
     }
