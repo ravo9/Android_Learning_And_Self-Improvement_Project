@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "772122575910",
+    "project_id": "travel-with-ai-aa458",
+    "storage_bucket": "travel-with-ai-aa458.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:772122575910:android:d01d68d7b224abd0fb12e7",
+        "android_client_info": {
+          "package_name": "com.dreamcatcher.travelwithai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCu3RSlQdsT9GKb5B9G3yQ_VwGfKKSFFoU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
