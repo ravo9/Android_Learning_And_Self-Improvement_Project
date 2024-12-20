@@ -1,7 +1,6 @@
 package com.example.demoapp
 
 import android.Manifest
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -28,9 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,14 +54,18 @@ val images = arrayOf(
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MainScreen() {
-    val context = LocalContext.current
-    val mainViewModel: MainViewModel = viewModel(factory = BakingViewModelFactory(context))
+    val mainViewModel: MainViewModel = viewModel(
+        factory = BakingViewModelFactory(LocalContext.current)
+    )
 
     val locationPermissionState = rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
     if (!locationPermissionState.status.isGranted) {
         LaunchedEffect(Unit) { locationPermissionState.launchPermissionRequest() }
     } else {
         val buttonHeight = 56.dp
+        val defaultPaddingHalf = 8.dp
+        val defaultPaddingQuarter = 4.dp
+        val defaultPadding = 16.dp
         val placeholderResult = stringResource(R.string.results_placeholder)
         var prompt by rememberSaveable { mutableStateOf("") }
         var result by rememberSaveable { mutableStateOf(placeholderResult) }
@@ -72,11 +73,11 @@ fun MainScreen() {
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                Box(modifier = Modifier.fillMaxWidth().padding(defaultPadding)) {
                     Text(
                         text = stringResource(R.string.main_screen_title).uppercase(),
                         style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.8.sp),
-                        modifier = Modifier.align(Alignment.Center),
+                        modifier = Modifier.align(Alignment.Center).padding(top = 20.dp),
                     )
                 }
             }
@@ -102,9 +103,16 @@ fun MainScreen() {
             }
 
             item {
-                Row(modifier = Modifier.padding(all = 16.dp)) {
+                Row(
+                    modifier = Modifier.padding(
+                        start = defaultPadding,
+                        end = defaultPadding,
+                        top = defaultPadding,
+                        bottom = defaultPaddingHalf,
+                    )
+                ) {
                     Button(
-                        onClick = { mainViewModel.sendLocationBasedPrompt() },
+                        onClick = { mainViewModel.sendPrompt(MessageType.INITIAL) },
                         modifier = Modifier.fillMaxWidth().height(buttonHeight),
                         elevation = ButtonDefaults.elevatedButtonElevation(),
                     ) { Text(text = stringResource(R.string.action_start)) }
@@ -112,7 +120,43 @@ fun MainScreen() {
             }
 
             item {
-                Row(modifier = Modifier.padding(all = 16.dp)) {
+                Row(
+                    modifier = Modifier.padding(
+                        horizontal = defaultPadding,
+                        vertical = defaultPaddingHalf,
+                    )
+                ) {
+                    Button(
+                        onClick = { mainViewModel.sendPrompt(MessageType.HISTORY) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically)
+                            .height(buttonHeight)
+                            .padding(end = defaultPaddingQuarter),
+                        elevation = ButtonDefaults.elevatedButtonElevation(),
+                    ) { Text(text = stringResource(R.string.history_of_this_place)) }
+
+                    Button(
+                        onClick = { mainViewModel.sendPrompt(MessageType.RESTAURANTS) },
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterVertically)
+                            .height(buttonHeight)
+                            .padding(end = defaultPaddingQuarter),
+                        elevation = ButtonDefaults.elevatedButtonElevation(),
+                    ) { Text(text = stringResource(R.string.restaurants_nearby)) }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.padding(
+                        start = defaultPadding,
+                        end = defaultPadding,
+                        top = defaultPadding,
+                        bottom = defaultPaddingHalf,
+                    )
+                ) {
                     OutlinedTextField(
                         value = prompt,
                         onValueChange = { prompt = it },
@@ -126,13 +170,7 @@ fun MainScreen() {
                     )
 
                     Button(
-                        onClick = {
-//                            val bitmap = BitmapFactory.decodeResource(
-//                                context.resources,
-//                                images[selectedImage.intValue]
-//                            )
-                            mainViewModel.sendPrompt(prompt)
-                        },
+                        onClick = { mainViewModel.sendPrompt(MessageType.CUSTOM, prompt) },
                         enabled = prompt.isNotEmpty(),
                         modifier = Modifier.align(Alignment.CenterVertically).height(buttonHeight),
                         elevation = ButtonDefaults.elevatedButtonElevation(),
@@ -142,27 +180,20 @@ fun MainScreen() {
 
             item {
                 if (uiState is UiState.Loading) {
-                    Box(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(180.dp)
-                                .align(Alignment.Center),
-                        )
+                    Box(modifier = Modifier.fillMaxWidth().padding(defaultPadding)) {
+                        CircularProgressIndicator(Modifier.size(180.dp).align(Alignment.Center))
                     }
                 } else {
-                    var textColor = MaterialTheme.colorScheme.onSurface
-                    if (uiState is UiState.Error) {
-                        textColor = MaterialTheme.colorScheme.error
-                        result = (uiState as UiState.Error).errorMessage
-                    } else if (uiState is UiState.Success) {
-                        textColor = MaterialTheme.colorScheme.onSurface
-                        result = (uiState as UiState.Success).outputText
+                    val (textColor, result) = when (val state = uiState) {
+                        is UiState.Error -> Pair(MaterialTheme.colorScheme.error, state.errorMessage)
+                        is UiState.Success -> Pair(MaterialTheme.colorScheme.onSurface, state.outputText)
+                        else -> Pair(MaterialTheme.colorScheme.onSurface, result)
                     }
                     Text(
                         text = result,
                         textAlign = TextAlign.Start,
                         color = textColor,
-                        modifier = Modifier.fillMaxWidth().padding(16.dp).heightIn(min = 0.dp),
+                        modifier = Modifier.fillMaxWidth().padding(defaultPadding).heightIn(min = 0.dp),
                     )
                 }
             }

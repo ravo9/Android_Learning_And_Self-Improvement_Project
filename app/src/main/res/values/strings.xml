@@ -6,4 +6,6 @@
     <string name="prompt_placeholder">Feel free to ask me more about this place!</string>
     <string name="ai_image_description">AI-generated scenery picture</string>
     <string name="results_placeholder">(My answers will appear here)</string>
+    <string name="restaurants_nearby">Restaurants nearby</string>
+    <string name="history_of_this_place">History of this place</string>
 </resources>
