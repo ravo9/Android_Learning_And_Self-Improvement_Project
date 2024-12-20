@@ -1,4 +1,4 @@
-package com.example.demoapp
+package com.dreamcatcher.travelwithai
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

@@ -1,4 +1,4 @@
-package com.example.demoapp
+package com.dreamcatcher.travelwithai
 
 class ImagesRepository() {
     fun getAIGeneratedImages() =

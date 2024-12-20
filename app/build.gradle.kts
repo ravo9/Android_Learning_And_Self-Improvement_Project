@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.demoapp"
+    namespace = "com.dreamcatcher.travelwithai"
     compileSdk = 35
 
     defaultConfig {
