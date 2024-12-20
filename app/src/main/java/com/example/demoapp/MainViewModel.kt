@@ -1,7 +1,6 @@
 package com.example.demoapp
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -20,7 +19,7 @@ object ModelNames {
     const val GEMINI_2_0_FLASH_EXP = "gemini-2.0-flash-exp"
 }
 
-class BakingViewModel(
+class MainViewModel(
     private val locationRepository: LocationRepository,
     private val generativeModel: GenerativeModel = GenerativeModel(
         modelName = ModelNames.GEMINI_2_0_FLASH_EXP,
@@ -35,7 +34,7 @@ class BakingViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val location: Location? = locationRepository.getCurrentLocation()
+                val location = locationRepository.getCurrentLocation()
                 if (location != null) {
                     val prompt = createLocationPrompt(location)
                     sendPrompt(prompt = prompt)
@@ -48,24 +47,12 @@ class BakingViewModel(
         }
     }
 
-    private fun createLocationPrompt(location: Location): String {
-        return "Tell me interesting things about this location: " +
-                "Latitude: ${location.latitude}, Longitude: ${location.longitude}" +
-                "Do not mention these values in response. Tell me about tourist spots, restaurants etc."
-    }
-
-    fun sendPrompt(
-        bitmap: Bitmap? = null,
-        prompt: String
-    ) {
+    fun sendPrompt(prompt: String) {
         _uiState.value = UiState.Loading
-
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                var enhancedPrompt = prompt
-                locationRepository.getCurrentLocation()?.let {
-                    enhancedPrompt += ". Please answer in relation to the place $it but do not mention these values in answer."
-                }
+                val location = locationRepository.getCurrentLocation()
+                var enhancedPrompt = createEnhancedPrompt(prompt, location)
                 val response = generativeModel.generateContent(content { text(enhancedPrompt) })
                 response.candidates.first().content.parts.first().asTextOrNull()?.let {
                     _uiState.value = UiState.Success(it)
@@ -75,14 +62,25 @@ class BakingViewModel(
             }
         }
     }
+
+    private fun createLocationPrompt(location: Location): String {
+        return "Tell me interesting things about this location: " +
+                "Latitude: ${location.latitude}, Longitude: ${location.longitude}" +
+                "Do not mention these values in response. Tell me about tourist spots, restaurants etc."
+    }
+
+    private fun createEnhancedPrompt(prompt: String, location: Location?): String =
+        location?.let {
+            "$prompt. Please answer in relation to the place $it but do not mention these values in the answer."
+        } ?: prompt
 }
 
 class BakingViewModelFactory(
     private val context: Context
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(BakingViewModel::class.java)) {
-            return BakingViewModel(LocationRepository(context)) as T
+        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+            return MainViewModel(LocationRepository(context)) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

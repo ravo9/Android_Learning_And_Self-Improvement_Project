@@ -56,9 +56,9 @@ val images = arrayOf(
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun BakingScreen() {
+fun MainScreen() {
     val context = LocalContext.current
-    val bakingViewModel: BakingViewModel = viewModel(factory = BakingViewModelFactory(context))
+    val mainViewModel: MainViewModel = viewModel(factory = BakingViewModelFactory(context))
 
     val locationPermissionState = rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
     if (!locationPermissionState.status.isGranted) {
@@ -66,10 +66,9 @@ fun BakingScreen() {
     } else {
         val buttonHeight = 56.dp
         val placeholderResult = stringResource(R.string.results_placeholder)
-        val selectedImage = remember { mutableIntStateOf(0) }
         var prompt by rememberSaveable { mutableStateOf("") }
         var result by rememberSaveable { mutableStateOf(placeholderResult) }
-        val uiState by bakingViewModel.uiState.collectAsState()
+        val uiState by mainViewModel.uiState.collectAsState()
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
@@ -105,7 +104,7 @@ fun BakingScreen() {
             item {
                 Row(modifier = Modifier.padding(all = 16.dp)) {
                     Button(
-                        onClick = { bakingViewModel.sendLocationBasedPrompt() },
+                        onClick = { mainViewModel.sendLocationBasedPrompt() },
                         modifier = Modifier.fillMaxWidth().height(buttonHeight),
                         elevation = ButtonDefaults.elevatedButtonElevation(),
                     ) { Text(text = stringResource(R.string.action_start)) }
@@ -128,11 +127,11 @@ fun BakingScreen() {
 
                     Button(
                         onClick = {
-                            val bitmap = BitmapFactory.decodeResource(
-                                context.resources,
-                                images[selectedImage.intValue]
-                            )
-                            bakingViewModel.sendPrompt(bitmap, prompt)
+//                            val bitmap = BitmapFactory.decodeResource(
+//                                context.resources,
+//                                images[selectedImage.intValue]
+//                            )
+                            mainViewModel.sendPrompt(prompt)
                         },
                         enabled = prompt.isNotEmpty(),
                         modifier = Modifier.align(Alignment.CenterVertically).height(buttonHeight),
