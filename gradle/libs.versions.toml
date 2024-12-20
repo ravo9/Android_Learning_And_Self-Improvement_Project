@@ -37,6 +37,7 @@ play-services-location = { group = "com.google.android.gms", name = "play-servic
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanistPermissions" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
+firebase-config = { group = "com.google.firebase", name = "firebase-config" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

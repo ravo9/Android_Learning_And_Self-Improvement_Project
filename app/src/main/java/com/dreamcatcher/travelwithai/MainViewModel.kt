@@ -5,9 +5,14 @@ import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.dreamcatcher.travelwithai.ui.theme.RemoteConfigRepository
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.asTextOrNull
 import com.google.ai.client.generativeai.type.content
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,13 +27,26 @@ object ModelNames {
 class MainViewModel(
     private val locationRepository: LocationRepository,
     private val imagesRepository: ImagesRepository,
-    private val generativeModel: GenerativeModel = GenerativeModel(
-        modelName = ModelNames.GEMINI_2_0_FLASH_EXP,
-        apiKey = BuildConfig.apiKey
-    )
+    private val remoteConfigRepository: RemoteConfigRepository,
 ) : ViewModel() {
     private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+
+    private var generativeModel: GenerativeModel? = null
+
+    init {
+        remoteConfigRepository.fetchApiKey { apiKey ->
+            // Todo: Handle null state
+            initializeGenerativeModel(apiKey!!)
+        }
+    }
+
+    private fun initializeGenerativeModel(apiKey: String) {
+        generativeModel = GenerativeModel(
+            modelName = ModelNames.GEMINI_2_0_FLASH_EXP,
+            apiKey = apiKey
+        )
+    }
 
     fun sendPrompt(messageType: MessageType, prompt: String? = null) {
         _uiState.value = UiState.Loading
@@ -38,8 +56,8 @@ class MainViewModel(
                 val location = locationRepository.getFakeLocation()
                 if (location == null) { _uiState.value = UiState.Error("Location not found.") }
                 val enhancedPrompt = messageType.getMessage(location!!, prompt ?: "")
-                val response = generativeModel.generateContent(content { text(enhancedPrompt) })
-                response.candidates.first().content.parts.first().asTextOrNull()?.let {
+                val response = generativeModel?.generateContent(content { text(enhancedPrompt) })
+                response?.candidates?.first()?.content?.parts?.first()?.asTextOrNull()?.let {
                     _uiState.value = UiState.Success(it)
                 }
             } catch (e: Exception) {
@@ -95,6 +113,7 @@ class BakingViewModelFactory(
             return MainViewModel(
                 LocationRepository(context),
                 ImagesRepository(),
+                RemoteConfigRepository(),
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
