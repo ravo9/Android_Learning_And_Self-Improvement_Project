@@ -9,9 +9,7 @@ class RemoteConfigRepository {
     private val remoteConfig: FirebaseRemoteConfig = Firebase.remoteConfig
 
     init {
-        val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 3600 // Adjust based on your needs
-        }
+        val configSettings = remoteConfigSettings { minimumFetchIntervalInSeconds = 3600 }
         remoteConfig.setConfigSettingsAsync(configSettings)
     }
 

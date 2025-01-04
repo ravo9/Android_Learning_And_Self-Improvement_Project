@@ -40,7 +40,9 @@ class MainViewModel(
                 if (location == null) { _uiState.value = UiState.Error("Location not found.") }
                 val enhancedPrompt = enhancePrompt(messageType, location!!, prompt)
                 generativeModelRepository.generateResponse(enhancedPrompt)?.let {
-                    _uiState.value = UiState.Success(it)
+                    cleanResponseText(it).let {
+                        _uiState.value = UiState.Success(it)
+                    }
                 }
                 // Todo: handle null state
             } catch (e: Exception) {
@@ -48,6 +50,8 @@ class MainViewModel(
             }
         }
     }
+
+    private fun cleanResponseText(originalText: String) = originalText.replace("**", "")
 
     private fun enhancePrompt(messageType: MessageType, location: Location, prompt: String?) =
         messageType.getMessage(location, prompt ?: "")
