@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +64,7 @@ fun MainScreen() {
         var prompt by rememberSaveable { mutableStateOf("") }
         var result by rememberSaveable { mutableStateOf(placeholderResult) }
         val uiState by mainViewModel.uiState.collectAsState()
+        val keyboardController = LocalSoftwareKeyboardController.current
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
@@ -105,7 +107,10 @@ fun MainScreen() {
                     )
                 ) {
                     Button(
-                        onClick = { mainViewModel.sendPrompt(MessageType.INITIAL) },
+                        onClick = {
+                            mainViewModel.sendPrompt(MessageType.INITIAL)
+                            keyboardController?.hide()
+                        },
                         modifier = Modifier.fillMaxWidth().height(buttonHeight),
                         elevation = ButtonDefaults.elevatedButtonElevation(),
                     ) { Text(text = stringResource(R.string.action_start)) }
@@ -120,7 +125,10 @@ fun MainScreen() {
                     )
                 ) {
                     Button(
-                        onClick = { mainViewModel.sendPrompt(MessageType.HISTORY) },
+                        onClick = {
+                            mainViewModel.sendPrompt(MessageType.HISTORY)
+                            keyboardController?.hide()
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .align(Alignment.CenterVertically)
@@ -130,7 +138,10 @@ fun MainScreen() {
                     ) { Text(text = stringResource(R.string.history_of_this_place)) }
 
                     Button(
-                        onClick = { mainViewModel.sendPrompt(MessageType.RESTAURANTS) },
+                        onClick = {
+                            mainViewModel.sendPrompt(MessageType.RESTAURANTS)
+                            keyboardController?.hide()
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .align(Alignment.CenterVertically)
@@ -149,7 +160,10 @@ fun MainScreen() {
                     )
                 ) {
                     Button(
-                        onClick = { mainViewModel.sendPrompt(MessageType.TOURIST_SPOTS) },
+                        onClick = {
+                            mainViewModel.sendPrompt(MessageType.TOURIST_SPOTS)
+                            keyboardController?.hide()
+                        },
                         modifier = Modifier
                             .weight(1.0f)
                             .align(Alignment.CenterVertically)
@@ -182,7 +196,10 @@ fun MainScreen() {
                     )
 
                     Button(
-                        onClick = { mainViewModel.sendPrompt(MessageType.CUSTOM, prompt) },
+                        onClick = {
+                            mainViewModel.sendPrompt(MessageType.CUSTOM, prompt)
+                            keyboardController?.hide()
+                        },
                         enabled = prompt.isNotEmpty(),
                         modifier = Modifier.align(Alignment.CenterVertically).height(buttonHeight),
                         elevation = ButtonDefaults.elevatedButtonElevation(),
