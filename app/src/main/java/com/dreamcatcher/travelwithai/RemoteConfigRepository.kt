@@ -1,4 +1,4 @@
-package com.dreamcatcher.travelwithai.ui.theme
+package com.dreamcatcher.travelwithai
 
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.ktx.remoteConfig

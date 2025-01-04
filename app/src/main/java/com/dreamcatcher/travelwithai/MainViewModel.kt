@@ -5,14 +5,9 @@ import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.dreamcatcher.travelwithai.ui.theme.RemoteConfigRepository
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.asTextOrNull
 import com.google.ai.client.generativeai.type.content
-import com.google.firebase.Firebase
-import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import com.google.firebase.remoteconfig.remoteConfig
-import com.google.firebase.remoteconfig.remoteConfigSettings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -52,8 +47,8 @@ class MainViewModel(
         _uiState.value = UiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
-//                val location = locationRepository.getCurrentLocation()
-                val location = locationRepository.getFakeLocation()
+                val location = locationRepository.getCurrentLocation()
+//                val location = locationRepository.getFakeLocation()
                 if (location == null) { _uiState.value = UiState.Error("Location not found.") }
                 val enhancedPrompt = messageType.getMessage(location!!, prompt ?: "")
                 val response = generativeModel?.generateContent(content { text(enhancedPrompt) })
