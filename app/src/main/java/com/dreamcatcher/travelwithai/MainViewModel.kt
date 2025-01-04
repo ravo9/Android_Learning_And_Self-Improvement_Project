@@ -21,10 +21,14 @@ class MainViewModel(
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
-        remoteConfigRepository.fetchApiKey { apiKey ->
-            // Todo: Handle null state
-            generativeModelRepository.initializeModel(apiKey!!)
-        }
+        remoteConfigRepository.fetchApiKey(
+            onSuccess = { apiKey ->
+                generativeModelRepository.initializeModel(apiKey)
+            },
+            onError = {
+                _uiState.value = UiState.Error("Problem with the server.")
+            },
+        )
     }
 
     fun sendPrompt(messageType: MessageType, prompt: String? = null) {
@@ -34,7 +38,7 @@ class MainViewModel(
                 val location = locationRepository.getCurrentLocation()
 //                val location = locationRepository.getFakeLocation()
                 if (location == null) { _uiState.value = UiState.Error("Location not found.") }
-                val enhancedPrompt = messageType.getMessage(location!!, prompt ?: "")
+                val enhancedPrompt = enhancePrompt(messageType, location!!, prompt)
                 generativeModelRepository.generateResponse(enhancedPrompt)?.let {
                     _uiState.value = UiState.Success(it)
                 }
@@ -44,6 +48,9 @@ class MainViewModel(
             }
         }
     }
+
+    private fun enhancePrompt(messageType: MessageType, location: Location, prompt: String?) =
+        messageType.getMessage(location, prompt ?: "")
 
     fun getAIGeneratedImages(): Array<Int> {
         return imagesRepository.getAIGeneratedImages()

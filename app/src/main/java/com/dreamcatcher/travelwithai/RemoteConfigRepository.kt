@@ -15,14 +15,14 @@ class RemoteConfigRepository {
         remoteConfig.setConfigSettingsAsync(configSettings)
     }
 
-    fun fetchApiKey(onComplete: (String?) -> Unit) {
+    fun fetchApiKey(onSuccess: (String) -> Unit, onError: (Throwable) -> Unit) {
         remoteConfig.fetchAndActivate()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val apiKey = remoteConfig.getString("api_key")
-                    onComplete(apiKey)
+                    onSuccess(apiKey)
                 } else {
-                    onComplete(null) // Fetch failed
+                    onError(Throwable()) // Todo
                 }
             }
     }
