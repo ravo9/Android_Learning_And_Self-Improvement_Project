@@ -69,6 +69,12 @@ enum class MessageType(private val template: String) {
                 "Do not mention these values in response. Don't confirm you understand me. " +
                 "Mention restaurants' names!"
     ),
+    TOURIST_SPOTS(
+        "Tell me about 5-6 most famous and important tourist spots/ attractions around this location that are worth to visit: " +
+                "Latitude: {latitude}, Longitude: {longitude}. " +
+                "Do not mention these values in response. Don't confirm you understand me. " +
+                "Behave like a tourist guide."
+    ),
     CUSTOM(
         "{prompt}. " +
                 "Please answer in relation to the place: " +

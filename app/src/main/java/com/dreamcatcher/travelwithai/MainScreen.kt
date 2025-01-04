@@ -44,13 +44,6 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 
-val images = arrayOf(
-    R.drawable.travel_1,
-    R.drawable.travel_2,
-    R.drawable.travel_3,
-    R.drawable.travel_4,
-)
-
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MainScreen() {
@@ -84,7 +77,7 @@ fun MainScreen() {
 
             item {
                 LazyRow(modifier = Modifier.fillMaxWidth()) {
-                    itemsIndexed(images) { index, image ->
+                    itemsIndexed(mainViewModel.getAIGeneratedImages()) { index, image ->
                         val roundedCornersValue = 16.dp
                         Card(
                             modifier = Modifier.padding(8.dp).requiredSize(130.dp),
@@ -145,6 +138,25 @@ fun MainScreen() {
                             .padding(end = defaultPaddingQuarter),
                         elevation = ButtonDefaults.elevatedButtonElevation(),
                     ) { Text(text = stringResource(R.string.restaurants_nearby)) }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.padding(
+                        horizontal = defaultPadding,
+                        vertical = defaultPaddingHalf,
+                    )
+                ) {
+                    Button(
+                        onClick = { mainViewModel.sendPrompt(MessageType.TOURIST_SPOTS) },
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .align(Alignment.CenterVertically)
+                            .height(buttonHeight)
+                            .padding(end = defaultPaddingQuarter),
+                        elevation = ButtonDefaults.elevatedButtonElevation(),
+                    ) { Text(text = stringResource(R.string.tourist_spots)) }
                 }
             }
 
