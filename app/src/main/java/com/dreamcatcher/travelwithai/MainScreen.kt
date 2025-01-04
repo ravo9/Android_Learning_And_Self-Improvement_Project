@@ -32,6 +32,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -56,7 +57,7 @@ fun MainScreen() {
     if (!locationPermissionState.status.isGranted) {
         LaunchedEffect(Unit) { locationPermissionState.launchPermissionRequest() }
     } else {
-        val buttonHeight = 56.dp
+        val buttonHeight = 54.dp
         val defaultPaddingHalf = 8.dp
         val defaultPaddingQuarter = 4.dp
         val defaultPadding = 16.dp
@@ -171,6 +172,31 @@ fun MainScreen() {
                             .padding(end = defaultPaddingQuarter),
                         elevation = ButtonDefaults.elevatedButtonElevation(),
                     ) { Text(text = stringResource(R.string.tourist_spots)) }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.padding(
+                        horizontal = defaultPadding,
+                        vertical = defaultPaddingHalf,
+                    )
+                ) {
+                    Button(
+                        onClick = {
+                            mainViewModel.sendPrompt(MessageType.SAFETY)
+                            keyboardController?.hide()
+                        },
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .align(Alignment.CenterVertically)
+                            .height(buttonHeight)
+                            .padding(end = defaultPaddingQuarter),
+                        elevation = ButtonDefaults.elevatedButtonElevation(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD32F2F) // Safety red
+                        )
+                    ) { Text(text = stringResource(R.string.safety_rules)) }
                 }
             }
 

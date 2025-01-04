@@ -9,4 +9,5 @@
     <string name="restaurants_nearby">Restaurants nearby</string>
     <string name="history_of_this_place">History of this place</string>
     <string name="tourist_spots">What attractions are worth-to-visit nearby</string>
+    <string name="safety_rules">What risks should I be aware of here?</string>
 </resources>
