@@ -1,6 +1,8 @@
 package com.dreamcatcher.travelwithai
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
 import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -20,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -55,14 +58,24 @@ import com.example.demoapp.ui.theme.Blue500
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.google.android.gms.tasks.Task
+import com.google.android.play.core.review.ReviewInfo
+import com.google.android.play.core.review.ReviewManagerFactory
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MainScreen() {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+
     val mainViewModel: MainViewModel = viewModel(
-        factory = BakingViewModelFactory(LocalContext.current)
+        factory = BakingViewModelFactory(context)
     )
+
+    var appOpenCount = sharedPreferences.getInt("app_open_count", 0)
+    sharedPreferences.edit().putInt("app_open_count", appOpenCount + 1).apply()
 
     val locationPermissionState = rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
@@ -97,6 +110,7 @@ fun MainScreen() {
             }
         }
 
+        ReviewDialog()
 
         LazyColumn(
             state = lazyListState,
@@ -355,6 +369,58 @@ fun ActionButton(
         Text(
             text = text,
             textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+fun ReviewDialog() {
+    val context = LocalContext.current
+    var showDialog by remember { mutableStateOf(false) }
+    val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
+
+    fun requestReview(context: Context) {
+        val reviewManager = ReviewManagerFactory.create(context)
+        val reviewInfoTask: Task<ReviewInfo> = reviewManager.requestReviewFlow()
+        sharedPreferences.edit().putBoolean("has_reviewed", true).apply()
+        reviewInfoTask.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val reviewInfo = task.result
+                val reviewFlow = reviewManager.launchReviewFlow(context as Activity, reviewInfo)
+                reviewFlow.addOnCompleteListener { }
+            } else {
+//                val exception = task.exception
+            }
+        }
+    }
+
+    val appOpenCount = sharedPreferences.getInt("app_open_count", 0)
+    val hasReviewed = sharedPreferences.getBoolean("has_reviewed", false)
+    when {
+        appOpenCount == 2 && !hasReviewed -> { showDialog = true }
+        appOpenCount == 4 && !hasReviewed -> { showDialog = true }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Would you like to leave a review?") },
+            text = { Text("I'm Rafal, sole developer of the app. It would be my honour if you'd like to leave me a review. If you have any idea about how I could improve the app, please share in the comment. Thank you for using my app!") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        requestReview(context)
+                        showDialog = false
+                    }
+                ) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text("No")
+                }
+            }
         )
     }
 }
