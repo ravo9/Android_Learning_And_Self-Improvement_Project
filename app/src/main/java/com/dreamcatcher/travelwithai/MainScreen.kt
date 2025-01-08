@@ -1,8 +1,12 @@
 package com.dreamcatcher.travelwithai
 
 import android.Manifest
+import android.graphics.Bitmap
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,11 +32,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -42,6 +49,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.demoapp.ui.theme.Blue500
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -54,10 +62,11 @@ fun MainScreen() {
     )
 
     val locationPermissionState = rememberPermissionState(permission = Manifest.permission.ACCESS_FINE_LOCATION)
+    val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
+
     if (!locationPermissionState.status.isGranted) {
         LaunchedEffect(Unit) { locationPermissionState.launchPermissionRequest() }
     } else {
-        val buttonHeight = 54.dp
         val defaultPaddingHalf = 8.dp
         val defaultPaddingQuarter = 4.dp
         val defaultPadding = 16.dp
@@ -65,15 +74,34 @@ fun MainScreen() {
         var prompt by rememberSaveable { mutableStateOf("") }
         var result by rememberSaveable { mutableStateOf(placeholderResult) }
         val uiState by mainViewModel.uiState.collectAsState()
-        val keyboardController = LocalSoftwareKeyboardController.current
+
+        // Image State for Captured Picture
+        var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+        // Launch Camera Contract
+        val takePictureLauncher = rememberLauncherForActivityResult (
+            contract = ActivityResultContracts.TakePicturePreview()
+        ) { bitmap: Bitmap? ->
+            if (bitmap != null) {
+                imageBitmap = bitmap
+                mainViewModel.sendPrompt(MessageType.PHOTO, null, bitmap)
+            } else {
+                // Todo
+            }
+        }
+
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             item {
-                Box(modifier = Modifier.fillMaxWidth().padding(defaultPadding)) {
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(defaultPadding)) {
                     Text(
                         text = stringResource(R.string.main_screen_title).uppercase(),
                         style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.8.sp),
-                        modifier = Modifier.align(Alignment.Center).padding(top = 20.dp),
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(top = 20.dp),
                     )
                 }
             }
@@ -83,7 +111,9 @@ fun MainScreen() {
                     itemsIndexed(mainViewModel.getAIGeneratedImages()) { index, image ->
                         val roundedCornersValue = 16.dp
                         Card(
-                            modifier = Modifier.padding(8.dp).requiredSize(130.dp),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .requiredSize(130.dp),
                             shape = RoundedCornerShape(roundedCornersValue),
                             elevation = CardDefaults.cardElevation(50.dp),
                         ) {
@@ -107,14 +137,11 @@ fun MainScreen() {
                         bottom = defaultPaddingHalf,
                     )
                 ) {
-                    Button(
-                        onClick = {
-                            mainViewModel.sendPrompt(MessageType.INITIAL)
-                            keyboardController?.hide()
-                        },
-                        modifier = Modifier.fillMaxWidth().height(buttonHeight),
-                        elevation = ButtonDefaults.elevatedButtonElevation(),
-                    ) { Text(text = stringResource(R.string.action_start)) }
+                    ActionButton(
+                        text = stringResource(R.string.action_start),
+                        onClick = { mainViewModel.sendPrompt(MessageType.INITIAL) },
+                        modifier = Modifier,
+                    )
                 }
             }
 
@@ -125,53 +152,22 @@ fun MainScreen() {
                         vertical = defaultPaddingHalf,
                     )
                 ) {
-                    Button(
-                        onClick = {
-                            mainViewModel.sendPrompt(MessageType.HISTORY)
-                            keyboardController?.hide()
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(Alignment.CenterVertically)
-                            .height(buttonHeight)
-                            .padding(end = defaultPaddingQuarter),
-                        elevation = ButtonDefaults.elevatedButtonElevation(),
-                    ) { Text(text = stringResource(R.string.history_of_this_place)) }
-
-                    Button(
-                        onClick = {
-                            mainViewModel.sendPrompt(MessageType.RESTAURANTS)
-                            keyboardController?.hide()
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .align(Alignment.CenterVertically)
-                            .height(buttonHeight)
-                            .padding(end = defaultPaddingQuarter),
-                        elevation = ButtonDefaults.elevatedButtonElevation(),
-                    ) { Text(text = stringResource(R.string.restaurants_nearby)) }
-                }
-            }
-
-            item {
-                Row(
-                    modifier = Modifier.padding(
-                        horizontal = defaultPadding,
-                        vertical = defaultPaddingHalf,
-                    )
-                ) {
-                    Button(
-                        onClick = {
-                            mainViewModel.sendPrompt(MessageType.TOURIST_SPOTS)
-                            keyboardController?.hide()
-                        },
+                    ActionButton(
+                        text = stringResource(R.string.history_of_this_place),
+                        onClick = { mainViewModel.sendPrompt(MessageType.HISTORY) },
                         modifier = Modifier
                             .weight(1.0f)
                             .align(Alignment.CenterVertically)
-                            .height(buttonHeight)
                             .padding(end = defaultPaddingQuarter),
-                        elevation = ButtonDefaults.elevatedButtonElevation(),
-                    ) { Text(text = stringResource(R.string.tourist_spots)) }
+                    )
+                    ActionButton(
+                        text = stringResource(R.string.restaurants_nearby),
+                        onClick = { mainViewModel.sendPrompt(MessageType.RESTAURANTS) },
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .align(Alignment.CenterVertically)
+                            .padding(end = defaultPaddingQuarter),
+                    )
                 }
             }
 
@@ -182,21 +178,78 @@ fun MainScreen() {
                         vertical = defaultPaddingHalf,
                     )
                 ) {
-                    Button(
-                        onClick = {
-                            mainViewModel.sendPrompt(MessageType.SAFETY)
-                            keyboardController?.hide()
-                        },
+                    ActionButton(
+                        text = stringResource(R.string.tourist_spots),
+                        onClick = { mainViewModel.sendPrompt(MessageType.TOURIST_SPOTS) },
                         modifier = Modifier
                             .weight(1.0f)
                             .align(Alignment.CenterVertically)
-                            .height(buttonHeight)
                             .padding(end = defaultPaddingQuarter),
-                        elevation = ButtonDefaults.elevatedButtonElevation(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD32F2F) // Safety red
+                    )
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.padding(
+                        horizontal = defaultPadding,
+                        vertical = defaultPaddingHalf,
+                    )
+                ) {
+                    ActionButton(
+                        text = stringResource(R.string.safety_rules),
+                        onClick = { mainViewModel.sendPrompt(MessageType.SAFETY) },
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .align(Alignment.CenterVertically)
+                            .padding(end = defaultPaddingQuarter),
+                        buttonColor = Color(0xFFD32F2F) // Safety red,
+                    )
+                }
+            }
+
+            item {
+                imageBitmap?.let { bitmap ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(defaultPadding),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "",
+                            modifier = Modifier
+                                .size(200.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            contentScale = ContentScale.Crop,
                         )
-                    ) { Text(text = stringResource(R.string.safety_rules)) }
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.padding(
+                        horizontal = defaultPadding,
+                        vertical = defaultPaddingHalf,
+                    )
+                ) {
+                    ActionButton(
+                        text = stringResource(R.string.take_a_picture),
+                        onClick = {
+                            if (!cameraPermissionState.status.isGranted) {
+                                cameraPermissionState.launchPermissionRequest()
+                            } else {
+                                takePictureLauncher.launch(null)
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(1.0f)
+                            .align(Alignment.CenterVertically)
+                            .padding(end = defaultPaddingQuarter),
+                        buttonColor = Blue500,
+                    )
                 }
             }
 
@@ -221,22 +274,26 @@ fun MainScreen() {
                         minLines = 2,
                     )
 
-                    Button(
-                        onClick = {
-                            mainViewModel.sendPrompt(MessageType.CUSTOM, prompt)
-                            keyboardController?.hide()
-                        },
+                    ActionButton(
+                        text = stringResource(R.string.action_go),
+                        onClick = { mainViewModel.sendPrompt(MessageType.CUSTOM, prompt) },
                         enabled = prompt.isNotEmpty(),
-                        modifier = Modifier.align(Alignment.CenterVertically).height(buttonHeight),
-                        elevation = ButtonDefaults.elevatedButtonElevation(),
-                    ) { Text(text = stringResource(R.string.action_go)) }
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .fillMaxWidth(0.225f)
+                    )
                 }
             }
 
             item {
                 if (uiState is UiState.Loading) {
-                    Box(modifier = Modifier.fillMaxWidth().padding(defaultPadding)) {
-                        CircularProgressIndicator(Modifier.size(180.dp).align(Alignment.Center))
+                    Box(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(defaultPadding)) {
+                        CircularProgressIndicator(
+                            Modifier
+                                .size(180.dp)
+                                .align(Alignment.Center))
                     }
                 } else {
                     val (textColor, result) = when (val state = uiState) {
@@ -248,10 +305,43 @@ fun MainScreen() {
                         text = result,
                         textAlign = TextAlign.Start,
                         color = textColor,
-                        modifier = Modifier.fillMaxWidth().padding(defaultPadding).heightIn(min = 0.dp),
+//                        style = MaterialTheme.typography.body1,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(defaultPadding)
+                            .heightIn(min = 0.dp),
                     )
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    buttonColor: Color = MaterialTheme.colorScheme.primary,
+    enabled: Boolean = true
+) {
+    val buttonHeight = 54.dp
+    val keyboardController = LocalSoftwareKeyboardController.current
+    Button(
+        onClick = {
+            onClick()
+            keyboardController?.hide()
+        },
+        modifier = modifier
+            .fillMaxWidth()
+            .height(buttonHeight),
+        enabled = enabled,
+        colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
+        elevation = ButtonDefaults.elevatedButtonElevation()
+    ) {
+        Text(
+            text = text,
+            textAlign = TextAlign.Center,
+        )
     }
 }

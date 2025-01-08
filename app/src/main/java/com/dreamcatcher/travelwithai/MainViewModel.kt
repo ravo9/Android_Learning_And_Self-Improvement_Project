@@ -1,6 +1,7 @@
 package com.dreamcatcher.travelwithai
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -31,15 +32,24 @@ class MainViewModel(
         )
     }
 
-    fun sendPrompt(messageType: MessageType, prompt: String? = null) {
+    fun sendPrompt(messageType: MessageType, prompt: String? = null, photo: Bitmap? = null) {
         _uiState.value = UiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val location = locationRepository.getCurrentLocation()
 //                val location = locationRepository.getFakeLocation()
-                if (location == null) { _uiState.value = UiState.Error("Location not found.") }
-                val enhancedPrompt = enhancePrompt(messageType, location!!, prompt)
-                generativeModelRepository.generateResponse(enhancedPrompt)?.let {
+                if (location == null) {
+                    _uiState.value = UiState.Error("Location not found.")
+                    return@launch
+                }
+
+                if (messageType == MessageType.PHOTO && photo == null) {
+                    _uiState.value = UiState.Error("Picture taking error.")
+                    return@launch
+                }
+
+                val enhancedPrompt = enhancePrompt(messageType, location, prompt)
+                generativeModelRepository.generateResponse(enhancedPrompt, photo)?.let {
                     cleanResponseText(it).let {
                         _uiState.value = UiState.Success(it)
                     }
@@ -58,56 +68,6 @@ class MainViewModel(
 
     fun getAIGeneratedImages(): Array<Int> {
         return imagesRepository.getAIGeneratedImages()
-    }
-}
-
-enum class MessageType(private val template: String) {
-    INITIAL(
-        "Tell me interesting things about this location: " +
-                "Latitude: {latitude}, Longitude: {longitude}. " +
-                "Do not mention these values in response. Don't confirm you understand me. " +
-                "Behave like a tourist guide. Tell me about history, tourist spots, restaurants, etc."
-    ),
-    HISTORY(
-        "Tell me about history of this location: " +
-                "Latitude: {latitude}, Longitude: {longitude}. " +
-                "Do not mention these values in response. Don't confirm you understand me. " +
-                "Behave like a tourist guide."
-    ),
-    RESTAURANTS(
-        "Tell me about restaurants and interesting food spots in a walking distance from this " +
-                "location: " +
-                "Latitude: {latitude}, Longitude: {longitude}. " +
-                "Do not mention these values in response. Don't confirm you understand me. " +
-                "Mention restaurants' names!"
-    ),
-    TOURIST_SPOTS(
-        "Tell me about 5-6 most famous and important tourist spots/ attractions around this " +
-                "location that are worth to visit: " +
-                "Latitude: {latitude}, Longitude: {longitude}. " +
-                "Do not mention these values in response. Don't confirm you understand me. " +
-                "Behave like a tourist guide."
-    ),
-    SAFETY(
-        "Tell me about risks I should be careful on, and behaviours should avoid as a tourist to " +
-                "stay safe in this location. Be specific. You can tell me also what behaviours " +
-                "should I avoid not to offend locals. Refer to this place specifically: " +
-                "Latitude: {latitude}, Longitude: {longitude}. " +
-                "Do not mention these values in response. Don't confirm you understand me. " +
-                "Behave like a tourist guide."
-    ),
-    CUSTOM(
-        "{prompt}. " +
-                "Please answer in relation to the place: " +
-                "Latitude: {latitude}, Longitude: {longitude}. " +
-                "Do not mention these values in response. Don't confirm you understand me."
-    );
-
-    fun getMessage(location: Location, prompt: String = ""): String {
-        return template
-            .replace("{latitude}", location.latitude.toString())
-            .replace("{longitude}", location.longitude.toString())
-            .replace("{prompt}", prompt)
     }
 }
 

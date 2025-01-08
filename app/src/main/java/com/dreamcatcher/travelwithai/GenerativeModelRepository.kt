@@ -1,5 +1,6 @@
 package com.dreamcatcher.travelwithai
 
+import android.graphics.Bitmap
 import com.google.ai.client.generativeai.GenerativeModel
 import com.google.ai.client.generativeai.type.asTextOrNull
 import com.google.ai.client.generativeai.type.content
@@ -19,9 +20,12 @@ class GenerativeModelRepository() {
         )
     }
 
-    suspend fun generateResponse(prompt: String): String? {
+    suspend fun generateResponse(prompt: String, image: Bitmap? = null): String? {
         return try {
-            val response = generativeModel?.generateContent(content { text(prompt) })
+            val response = generativeModel?.generateContent(content {
+                text(prompt)
+                image?.let { image(it) }
+            })
             response?.candidates?.first()?.content?.parts?.first()?.asTextOrNull()
         } catch (e: Exception) {
             null // Handle error as needed
