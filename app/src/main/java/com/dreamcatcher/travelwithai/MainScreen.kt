@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,6 +34,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,6 +55,7 @@ import com.example.demoapp.ui.theme.Blue500
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -75,6 +78,10 @@ fun MainScreen() {
         var result by rememberSaveable { mutableStateOf(placeholderResult) }
         val uiState by mainViewModel.uiState.collectAsState()
 
+        // Loading bar animation
+        val scope = rememberCoroutineScope()
+        val lazyListState = rememberLazyListState()
+
         // Image State for Captured Picture
         var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
 
@@ -91,7 +98,10 @@ fun MainScreen() {
         }
 
 
-        LazyColumn(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier.fillMaxSize(),
+        ) {
             item {
                 Box(modifier = Modifier
                     .fillMaxWidth()
@@ -294,6 +304,9 @@ fun MainScreen() {
                             Modifier
                                 .size(180.dp)
                                 .align(Alignment.Center))
+                    }
+                    scope.launch {
+                        lazyListState.animateScrollToItem(lazyListState.layoutInfo.totalItemsCount - 1)
                     }
                 } else {
                     val (textColor, result) = when (val state = uiState) {
