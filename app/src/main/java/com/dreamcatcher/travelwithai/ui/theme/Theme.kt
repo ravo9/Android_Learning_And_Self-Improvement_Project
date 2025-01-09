@@ -1,4 +1,4 @@
-package com.example.demoapp.ui.theme
+package com.dreamcatcher.travelwithai.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

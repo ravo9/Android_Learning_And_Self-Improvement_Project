@@ -54,14 +54,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.demoapp.ui.theme.Blue500
+import com.dreamcatcher.travelwithai.ui.theme.Blue500
+import com.dreamcatcher.travelwithai.ui.theme.UIConstants.DefaultPadding
+import com.dreamcatcher.travelwithai.ui.theme.UIConstants.DefaultPaddingHalf
+import com.dreamcatcher.travelwithai.ui.theme.UIConstants.DefaultPaddingQuarter
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.android.gms.tasks.Task
 import com.google.android.play.core.review.ReviewInfo
 import com.google.android.play.core.review.ReviewManagerFactory
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -69,10 +71,7 @@ import kotlinx.coroutines.launch
 fun MainScreen() {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
-
-    val mainViewModel: MainViewModel = viewModel(
-        factory = BakingViewModelFactory(context)
-    )
+    val mainViewModel: MainViewModel = viewModel(factory = BakingViewModelFactory(context))
 
     var appOpenCount = sharedPreferences.getInt("app_open_count", 0)
     sharedPreferences.edit().putInt("app_open_count", appOpenCount + 1).apply()
@@ -83,9 +82,6 @@ fun MainScreen() {
     if (!locationPermissionState.status.isGranted) {
         LaunchedEffect(Unit) { locationPermissionState.launchPermissionRequest() }
     } else {
-        val defaultPaddingHalf = 8.dp
-        val defaultPaddingQuarter = 4.dp
-        val defaultPadding = 16.dp
         val placeholderResult = stringResource(R.string.results_placeholder)
         var prompt by rememberSaveable { mutableStateOf("") }
         var result by rememberSaveable { mutableStateOf(placeholderResult) }
@@ -119,7 +115,7 @@ fun MainScreen() {
             item {
                 Box(modifier = Modifier
                     .fillMaxWidth()
-                    .padding(defaultPadding)) {
+                    .padding(DefaultPadding)) {
                     Text(
                         text = stringResource(R.string.main_screen_title).uppercase(),
                         style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.8.sp),
@@ -155,16 +151,15 @@ fun MainScreen() {
             item {
                 Row(
                     modifier = Modifier.padding(
-                        start = defaultPadding,
-                        end = defaultPadding,
-                        top = defaultPadding,
-                        bottom = defaultPaddingHalf,
+                        start = DefaultPadding,
+                        end = DefaultPadding,
+                        top = DefaultPadding,
+                        bottom = DefaultPaddingHalf,
                     )
                 ) {
                     ActionButton(
                         text = stringResource(R.string.action_start),
                         onClick = { mainViewModel.sendPrompt(MessageType.INITIAL) },
-                        modifier = Modifier,
                     )
                 }
             }
@@ -172,8 +167,8 @@ fun MainScreen() {
             item {
                 Row(
                     modifier = Modifier.padding(
-                        horizontal = defaultPadding,
-                        vertical = defaultPaddingHalf,
+                        horizontal = DefaultPadding,
+                        vertical = DefaultPaddingHalf,
                     )
                 ) {
                     ActionButton(
@@ -182,7 +177,7 @@ fun MainScreen() {
                         modifier = Modifier
                             .weight(1.0f)
                             .align(Alignment.CenterVertically)
-                            .padding(end = defaultPaddingQuarter),
+                            .padding(end = DefaultPaddingQuarter),
                     )
                     ActionButton(
                         text = stringResource(R.string.restaurants_nearby),
@@ -190,7 +185,7 @@ fun MainScreen() {
                         modifier = Modifier
                             .weight(1.0f)
                             .align(Alignment.CenterVertically)
-                            .padding(end = defaultPaddingQuarter),
+                            .padding(end = DefaultPaddingQuarter),
                     )
                 }
             }
@@ -198,8 +193,8 @@ fun MainScreen() {
             item {
                 Row(
                     modifier = Modifier.padding(
-                        horizontal = defaultPadding,
-                        vertical = defaultPaddingHalf,
+                        horizontal = DefaultPadding,
+                        vertical = DefaultPaddingHalf,
                     )
                 ) {
                     ActionButton(
@@ -208,7 +203,7 @@ fun MainScreen() {
                         modifier = Modifier
                             .weight(1.0f)
                             .align(Alignment.CenterVertically)
-                            .padding(end = defaultPaddingQuarter),
+                            .padding(end = DefaultPaddingQuarter),
                     )
                 }
             }
@@ -216,8 +211,8 @@ fun MainScreen() {
             item {
                 Row(
                     modifier = Modifier.padding(
-                        horizontal = defaultPadding,
-                        vertical = defaultPaddingHalf,
+                        horizontal = DefaultPadding,
+                        vertical = DefaultPaddingHalf,
                     )
                 ) {
                     ActionButton(
@@ -226,7 +221,7 @@ fun MainScreen() {
                         modifier = Modifier
                             .weight(1.0f)
                             .align(Alignment.CenterVertically)
-                            .padding(end = defaultPaddingQuarter),
+                            .padding(end = DefaultPaddingQuarter),
                         buttonColor = Color(0xFFD32F2F) // Safety red,
                     )
                 }
@@ -237,7 +232,7 @@ fun MainScreen() {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(defaultPadding),
+                            .padding(DefaultPadding),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Image(
@@ -255,8 +250,8 @@ fun MainScreen() {
             item {
                 Row(
                     modifier = Modifier.padding(
-                        horizontal = defaultPadding,
-                        vertical = defaultPaddingHalf,
+                        horizontal = DefaultPadding,
+                        vertical = DefaultPaddingHalf,
                     )
                 ) {
                     ActionButton(
@@ -271,7 +266,7 @@ fun MainScreen() {
                         modifier = Modifier
                             .weight(1.0f)
                             .align(Alignment.CenterVertically)
-                            .padding(end = defaultPaddingQuarter),
+                            .padding(end = DefaultPaddingQuarter),
                         buttonColor = Blue500,
                     )
                 }
@@ -280,10 +275,10 @@ fun MainScreen() {
             item {
                 Row(
                     modifier = Modifier.padding(
-                        start = defaultPadding,
-                        end = defaultPadding,
-                        top = defaultPadding,
-                        bottom = defaultPaddingHalf,
+                        start = DefaultPadding,
+                        end = DefaultPadding,
+                        top = DefaultPadding,
+                        bottom = DefaultPaddingHalf,
                     )
                 ) {
                     OutlinedTextField(
@@ -313,7 +308,7 @@ fun MainScreen() {
                 if (uiState is UiState.Loading) {
                     Box(modifier = Modifier
                         .fillMaxWidth()
-                        .padding(defaultPadding)) {
+                        .padding(DefaultPadding)) {
                         CircularProgressIndicator(
                             Modifier
                                 .size(180.dp)
@@ -332,10 +327,9 @@ fun MainScreen() {
                         text = result,
                         textAlign = TextAlign.Start,
                         color = textColor,
-//                        style = MaterialTheme.typography.body1,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(defaultPadding)
+                            .padding(DefaultPadding)
                             .heightIn(min = 0.dp),
                     )
                 }
@@ -348,7 +342,7 @@ fun MainScreen() {
 fun ActionButton(
     text: String,
     onClick: () -> Unit,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     buttonColor: Color = MaterialTheme.colorScheme.primary,
     enabled: Boolean = true
 ) {
@@ -388,9 +382,7 @@ fun ReviewDialog() {
                 val reviewInfo = task.result
                 val reviewFlow = reviewManager.launchReviewFlow(context as Activity, reviewInfo)
                 reviewFlow.addOnCompleteListener { }
-            } else {
-//                val exception = task.exception
-            }
+            } else { } // Todo
         }
     }
 
