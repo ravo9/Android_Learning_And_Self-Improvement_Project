@@ -3,6 +3,7 @@ package com.dreamcatcher.travelwithai
 import android.Manifest
 import android.app.Activity
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -370,49 +371,37 @@ fun ActionButton(
 @Composable
 fun ReviewDialog() {
     val context = LocalContext.current
-    var showDialog by remember { mutableStateOf(false) }
     val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
-
-    fun requestReview(context: Context) {
-        val reviewManager = ReviewManagerFactory.create(context)
-        val reviewInfoTask: Task<ReviewInfo> = reviewManager.requestReviewFlow()
-        sharedPreferences.edit().putBoolean("has_reviewed", true).apply()
-        reviewInfoTask.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val reviewInfo = task.result
-                val reviewFlow = reviewManager.launchReviewFlow(context as Activity, reviewInfo)
-                reviewFlow.addOnCompleteListener { }
-            } else { } // Todo
-        }
-    }
 
     val appOpenCount = sharedPreferences.getInt("app_open_count", 0)
     val hasReviewed = sharedPreferences.getBoolean("has_reviewed", false)
-    when {
-        appOpenCount == 2 && !hasReviewed -> { showDialog = true }
-        appOpenCount == 4 && !hasReviewed -> { showDialog = true }
-    }
+    val shouldShowDialog = (appOpenCount == 2 || appOpenCount == 4) && !hasReviewed
+    var showDialog by remember { mutableStateOf(shouldShowDialog) }
 
+    val confirmButtonClick = {
+        requestReview(context, sharedPreferences)
+        showDialog = false
+    }
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
             title = { Text("Would you like to leave a review?") },
             text = { Text("I'm Rafal, sole developer of the app. It would be my honour if you'd like to leave me a review. If you have any idea about how I could improve the app, please share in the comment. Thank you for using my app!") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        requestReview(context)
-                        showDialog = false
-                    }
-                ) {
-                    Text("Yes")
-                }
-            },
-            dismissButton = {
-                Button(onClick = { showDialog = false }) {
-                    Text("No")
-                }
-            }
+            confirmButton = { Button(onClick = confirmButtonClick) { Text("Yes") } },
+            dismissButton = { Button(onClick = { showDialog = false }) { Text("No") } }
         )
+    }
+}
+
+fun requestReview(context: Context, sharedPreferences: SharedPreferences) {
+    sharedPreferences.edit().putBoolean("has_reviewed", true).apply()
+    val reviewManager = ReviewManagerFactory.create(context)
+    val reviewInfoTask: Task<ReviewInfo> = reviewManager.requestReviewFlow()
+    reviewInfoTask.addOnCompleteListener { task ->
+        if (task.isSuccessful) {
+            val reviewInfo = task.result
+            val reviewFlow = reviewManager.launchReviewFlow(context as Activity, reviewInfo)
+            reviewFlow.addOnCompleteListener { }
+        } else { } // Todo
     }
 }
