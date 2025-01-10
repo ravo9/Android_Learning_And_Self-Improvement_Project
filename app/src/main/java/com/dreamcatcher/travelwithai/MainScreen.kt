@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -102,9 +103,7 @@ fun MainScreen() {
             if (bitmap != null) {
                 imageBitmap = bitmap
                 mainViewModel.sendPrompt(MessageType.PHOTO, null, bitmap)
-            } else {
-                // Todo
-            }
+            } else { } // Todo
         }
 
         ReviewDialog()
@@ -133,7 +132,7 @@ fun MainScreen() {
                         val roundedCornersValue = 16.dp
                         Card(
                             modifier = Modifier
-                                .padding(8.dp)
+                                .padding(DefaultPaddingHalf)
                                 .requiredSize(130.dp),
                             shape = RoundedCornerShape(roundedCornersValue),
                             elevation = CardDefaults.cardElevation(50.dp),
@@ -150,82 +149,37 @@ fun MainScreen() {
             }
 
             item {
-                Row(
-                    modifier = Modifier.padding(
-                        start = DefaultPadding,
-                        end = DefaultPadding,
-                        top = DefaultPadding,
-                        bottom = DefaultPaddingHalf,
+                ActionRow(
+                    buttons = listOf(
+                        stringResource(R.string.action_start) to { mainViewModel.sendPrompt(MessageType.INITIAL) },
                     )
-                ) {
-                    ActionButton(
-                        text = stringResource(R.string.action_start),
-                        onClick = { mainViewModel.sendPrompt(MessageType.INITIAL) },
-                    )
-                }
+                )
             }
 
             item {
-                Row(
-                    modifier = Modifier.padding(
-                        horizontal = DefaultPadding,
-                        vertical = DefaultPaddingHalf,
+                ActionRow(
+                    buttons = listOf(
+                        stringResource(R.string.history_of_this_place) to { mainViewModel.sendPrompt(MessageType.HISTORY) },
+                        stringResource(R.string.restaurants_nearby) to { mainViewModel.sendPrompt(MessageType.RESTAURANTS) }
                     )
-                ) {
-                    ActionButton(
-                        text = stringResource(R.string.history_of_this_place),
-                        onClick = { mainViewModel.sendPrompt(MessageType.HISTORY) },
-                        modifier = Modifier
-                            .weight(1.0f)
-                            .align(Alignment.CenterVertically)
-                            .padding(end = DefaultPaddingQuarter),
-                    )
-                    ActionButton(
-                        text = stringResource(R.string.restaurants_nearby),
-                        onClick = { mainViewModel.sendPrompt(MessageType.RESTAURANTS) },
-                        modifier = Modifier
-                            .weight(1.0f)
-                            .align(Alignment.CenterVertically)
-                            .padding(end = DefaultPaddingQuarter),
-                    )
-                }
+                )
             }
 
             item {
-                Row(
-                    modifier = Modifier.padding(
-                        horizontal = DefaultPadding,
-                        vertical = DefaultPaddingHalf,
+                ActionRow(
+                    buttons = listOf(
+                        stringResource(R.string.tourist_spots) to { mainViewModel.sendPrompt(MessageType.TOURIST_SPOTS) },
                     )
-                ) {
-                    ActionButton(
-                        text = stringResource(R.string.tourist_spots),
-                        onClick = { mainViewModel.sendPrompt(MessageType.TOURIST_SPOTS) },
-                        modifier = Modifier
-                            .weight(1.0f)
-                            .align(Alignment.CenterVertically)
-                            .padding(end = DefaultPaddingQuarter),
-                    )
-                }
+                )
             }
 
             item {
-                Row(
-                    modifier = Modifier.padding(
-                        horizontal = DefaultPadding,
-                        vertical = DefaultPaddingHalf,
-                    )
-                ) {
-                    ActionButton(
-                        text = stringResource(R.string.safety_rules),
-                        onClick = { mainViewModel.sendPrompt(MessageType.SAFETY) },
-                        modifier = Modifier
-                            .weight(1.0f)
-                            .align(Alignment.CenterVertically)
-                            .padding(end = DefaultPaddingQuarter),
-                        buttonColor = Color(0xFFD32F2F) // Safety red,
-                    )
-                }
+                ActionRow(
+                    buttons = listOf(
+                        stringResource(R.string.safety_rules) to { mainViewModel.sendPrompt(MessageType.SAFETY) },
+                    ),
+                    buttonColor = Color(0xFFD32F2F) // Safety red,
+                )
             }
 
             item {
@@ -249,28 +203,18 @@ fun MainScreen() {
             }
 
             item {
-                Row(
-                    modifier = Modifier.padding(
-                        horizontal = DefaultPadding,
-                        vertical = DefaultPaddingHalf,
-                    )
-                ) {
-                    ActionButton(
-                        text = stringResource(R.string.take_a_picture),
-                        onClick = {
+                ActionRow(
+                    buttons = listOf(
+                        stringResource(R.string.take_a_picture) to {
                             if (!cameraPermissionState.status.isGranted) {
                                 cameraPermissionState.launchPermissionRequest()
                             } else {
                                 takePictureLauncher.launch(null)
                             }
                         },
-                        modifier = Modifier
-                            .weight(1.0f)
-                            .align(Alignment.CenterVertically)
-                            .padding(end = DefaultPaddingQuarter),
-                        buttonColor = Blue500,
-                    )
-                }
+                    ),
+                    buttonColor = Blue500,
+                )
             }
 
             item {
@@ -365,6 +309,29 @@ fun ActionButton(
             text = text,
             textAlign = TextAlign.Center,
         )
+    }
+}
+
+@Composable
+fun ActionRow(
+    buttons: List<Pair<String, () -> Unit>>,
+    modifier: Modifier = Modifier,
+    buttonColor: Color = MaterialTheme.colorScheme.primary
+) {
+    Row(
+        modifier = modifier.padding(horizontal = DefaultPadding, vertical = DefaultPaddingHalf),
+        horizontalArrangement = Arrangement.spacedBy(DefaultPaddingQuarter)
+    ) {
+        buttons.forEach { (text, action) ->
+            ActionButton(
+                text = text,
+                onClick = action,
+                modifier = Modifier
+                    .weight(1.0f)
+                    .align(Alignment.CenterVertically),
+                buttonColor = buttonColor
+            )
+        }
     }
 }
 
