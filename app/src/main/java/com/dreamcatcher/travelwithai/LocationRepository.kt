@@ -7,7 +7,7 @@ import com.google.android.gms.location.LocationServices
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resumeWithException
 
-class LocationRepository(private val context: Context) {
+class LocationRepository(context: Context) {
 
     private val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
 

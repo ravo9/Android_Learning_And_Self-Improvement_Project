@@ -6,4 +6,5 @@ object UIConstants {
     val DefaultPadding = 16.dp
     val DefaultPaddingHalf = 8.dp
     val DefaultPaddingQuarter = 4.dp
+    val DefaultRoundedCornerValue = 16.dp
 }
