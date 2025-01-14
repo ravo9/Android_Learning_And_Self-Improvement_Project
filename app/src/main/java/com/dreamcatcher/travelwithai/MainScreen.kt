@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,11 +59,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.dreamcatcher.travelwithai.ui.theme.Blue500
+import com.dreamcatcher.travelwithai.ui.theme.FirebrickRed
 import com.dreamcatcher.travelwithai.ui.theme.UIConstants
 import com.dreamcatcher.travelwithai.ui.theme.UIConstants.DefaultPadding
 import com.dreamcatcher.travelwithai.ui.theme.UIConstants.DefaultPaddingHalf
 import com.dreamcatcher.travelwithai.ui.theme.UIConstants.DefaultPaddingQuarter
 import com.dreamcatcher.travelwithai.ui.theme.UIConstants.DefaultRoundedCornerValue
+import com.dreamcatcher.travelwithai.ui.theme.VeryLightGrey
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -105,7 +109,7 @@ fun MainScreen() {
             item { ActionRow(listOf(R.string.tourist_spots to { viewModel.sendPrompt(MessageType.TOURIST_SPOTS) })) }
             item { ActionRow(
                 listOf(R.string.safety_rules to { viewModel.sendPrompt(MessageType.SAFETY) }),
-                buttonColor = Color(0xFFD32F2F), // Safety red,
+                buttonColor = FirebrickRed
             )}
             item { ImagePreview(imageBitmap) }
             item { ActionRow(
@@ -138,7 +142,7 @@ fun ImageCarousel(mainViewModel: MainViewModel) {
         itemsIndexed(mainViewModel.getAIGeneratedImages()) { _, image ->
             Card(
                 modifier = Modifier.padding(DefaultPaddingHalf).requiredSize(130.dp),
-                shape = RoundedCornerShape(UIConstants.DefaultRoundedCornerValue),
+                shape = RoundedCornerShape(DefaultRoundedCornerValue),
                 elevation = CardDefaults.cardElevation(50.dp),
             ) {
                 Image(
@@ -166,7 +170,7 @@ fun ActionButton(
             onClick()
             keyboardController?.hide()
         },
-        modifier = modifier.fillMaxWidth().height(54.dp),
+        modifier = modifier.fillMaxWidth().height(UIConstants.ButtonHeight),
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
         elevation = ButtonDefaults.elevatedButtonElevation()
@@ -224,6 +228,11 @@ fun PromptInput(mainViewModel: MainViewModel) {
             modifier = Modifier.weight(0.8f).padding(end = DefaultPadding).align(Alignment.CenterVertically),
             shape = RoundedCornerShape(12.dp),
             minLines = 2,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Gray,
+                unfocusedBorderColor = Color.Gray,
+                disabledBorderColor = Color.Gray,
+            )
         )
         ActionButton(
             text = R.string.action_go,
@@ -250,7 +259,21 @@ fun UiStateDisplay(uiState: UiState, lazyListState: LazyListState) {
         val itemsCount = lazyListState.layoutInfo.totalItemsCount
         LaunchedEffect(Unit) { scope.launch { lazyListState.animateScrollToItem(itemsCount - 1) } }
     } else {
-        text?.let { Text(it, Modifier.fillMaxWidth().padding(DefaultPadding), color!!) }
+        text?.let {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(DefaultPadding)
+                    .background(VeryLightGrey, RoundedCornerShape(12.dp))
+                    .padding(DefaultPadding)
+            ) {
+                Text(
+                    it,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = color!!
+                )
+            }
+        }
     }
 }
 

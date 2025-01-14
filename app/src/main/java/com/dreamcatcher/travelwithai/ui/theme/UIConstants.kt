@@ -7,4 +7,5 @@ object UIConstants {
     val DefaultPaddingHalf = 8.dp
     val DefaultPaddingQuarter = 4.dp
     val DefaultRoundedCornerValue = 16.dp
+    val ButtonHeight = 54.dp
 }

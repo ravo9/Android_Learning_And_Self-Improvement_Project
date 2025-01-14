@@ -14,12 +14,10 @@ android {
         applicationId = "com.dreamcatcher.travelwithai"
         minSdk = 25
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.3"
-
+        versionCode = 5
+        versionName = "1.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -43,7 +41,6 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
