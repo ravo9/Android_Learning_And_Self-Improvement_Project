@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -78,6 +79,7 @@ fun MainScreen() {
     val context = LocalContext.current
     val viewModel: MainViewModel = viewModel(factory = BakingViewModelFactory(context))
     val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
+    val fakeImageBitmap: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.london) // For screenshots
 
     updateAppOpeningsCounter(context)
 
@@ -91,6 +93,7 @@ fun MainScreen() {
             it?.let {
                 imageBitmap = it
                 viewModel.sendPrompt(MessageType.PHOTO, null, it)
+//                viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap)
             }
         }
 
@@ -202,6 +205,7 @@ fun ActionRow(
 
 @Composable
 fun ImagePreview(imageBitmap: Bitmap?) {
+    val fakeImagePainterResource = painterResource(R.drawable.london) // For screenshots
     imageBitmap?.let { bitmap ->
         Column(
             modifier = Modifier.fillMaxWidth().padding(DefaultPadding),
@@ -209,6 +213,7 @@ fun ImagePreview(imageBitmap: Bitmap?) {
         ) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
+//                painter = fakeImagePainterResource,
                 contentDescription = null,
                 modifier = Modifier.size(200.dp).clip(RoundedCornerShape(DefaultRoundedCornerValue)),
                 contentScale = ContentScale.Crop,

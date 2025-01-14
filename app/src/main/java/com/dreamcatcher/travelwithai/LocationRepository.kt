@@ -34,6 +34,11 @@ class LocationRepository(context: Context) {
             longitude = -3.1894
         }
 
+        val londonLocation = Location("provider").apply {
+            latitude = 51.5134  // London, near St. Paul's Cathedral
+            longitude = -0.0985  // Longitude near St. Paul's Cathedral, over the River Thames
+        }
+
         val wroclawLocation = Location("provider").apply {
             latitude = 51.1080 // Wroclaw, Hiszpanska street
             longitude = 17.0310
@@ -44,7 +49,7 @@ class LocationRepository(context: Context) {
             longitude = 100.5339
         }
 
-        val location = edinburghLocation
+        val location = londonLocation
         return suspendCancellableCoroutine { continuation ->
             continuation.resume(location) {}
         }

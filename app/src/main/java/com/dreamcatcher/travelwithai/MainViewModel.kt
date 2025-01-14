@@ -37,7 +37,7 @@ class MainViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val location = locationRepository.getCurrentLocation()
-//                val location = locationRepository.getFakeLocation()
+//                val location = locationRepository.getFakeLocation() // For screenshots
                 if (location == null) {
                     _uiState.value = UiState.Error("Location not found.")
                     return@launch
