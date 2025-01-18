@@ -15,21 +15,25 @@ import kotlinx.coroutines.launch
 class MainViewModel(
     private val locationRepository: LocationRepository,
     private val imagesRepository: ImagesRepository,
-    remoteConfigRepository: RemoteConfigRepository,
+    private val remoteConfigRepository: RemoteConfigRepository,
     private val generativeModelRepository: GenerativeModelRepository,
 ) : ViewModel() {
     private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
+        initializeGenerativeModel()
+    }
+
+    private fun initializeGenerativeModel() {
         remoteConfigRepository.fetchApiKey(
-            onSuccess = { apiKey ->
-                generativeModelRepository.initializeModel(apiKey)
-            },
-            onError = {
-                _uiState.value = UiState.Error("Problem with the server.")
-            },
+            onSuccess = { apiKey -> generativeModelRepository.initializeModel(apiKey) },
+            onError = { _uiState.value = UiState.Error("Problem with the server.") },
         )
+    }
+
+    fun getAIGeneratedImages(): Array<Int> {
+        return imagesRepository.getAIGeneratedImages()
     }
 
     fun sendPrompt(messageType: MessageType, prompt: String? = null, photo: Bitmap? = null) {
@@ -42,33 +46,22 @@ class MainViewModel(
                     _uiState.value = UiState.Error("Location not found.")
                     return@launch
                 }
-
                 if (messageType == MessageType.PHOTO && photo == null) {
                     _uiState.value = UiState.Error("Picture taking error.")
                     return@launch
                 }
-
                 val enhancedPrompt = enhancePrompt(messageType, location, prompt)
-                generativeModelRepository.generateResponse(enhancedPrompt, photo)?.let {
-                    cleanResponseText(it).let {
-                        _uiState.value = UiState.Success(it)
-                    }
-                }
-                // Todo: handle null state
+                val response = generativeModelRepository.generateResponse(enhancedPrompt, photo)
+                if (response != null) _uiState.value = UiState.Success(response)
+                else _uiState.value = UiState.Error("Error (received prompt is empty).")
             } catch (e: Exception) {
-                _uiState.value = UiState.Error(e.localizedMessage ?: "")
+                _uiState.value = UiState.Error(e.localizedMessage ?: "Sending prompt error.")
             }
         }
     }
 
-    private fun cleanResponseText(originalText: String) = originalText.replace("**", "")
-
     private fun enhancePrompt(messageType: MessageType, location: Location, prompt: String?) =
-        messageType.getMessage(location, prompt ?: "")
-
-    fun getAIGeneratedImages(): Array<Int> {
-        return imagesRepository.getAIGeneratedImages()
-    }
+        messageType.getMessage(location, prompt ?: "").replace("**", "")
 }
 
 class BakingViewModelFactory(

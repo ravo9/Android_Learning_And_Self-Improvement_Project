@@ -272,11 +272,7 @@ fun UiStateDisplay(uiState: UiState, lazyListState: LazyListState) {
                     .background(VeryLightGrey, RoundedCornerShape(12.dp))
                     .padding(DefaultPadding)
             ) {
-                Text(
-                    it,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = color!!
-                )
+                Text(it, modifier = Modifier.fillMaxWidth(), color = color!!)
             }
         }
     }
@@ -284,10 +280,7 @@ fun UiStateDisplay(uiState: UiState, lazyListState: LazyListState) {
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun RequestPermission(
-    permission: String,
-    onPermissionGranted: @Composable () -> Unit
-) {
+fun RequestPermission(permission: String, onPermissionGranted: @Composable () -> Unit) {
     rememberPermissionState(permission).let {
         if (it.status.isGranted) onPermissionGranted()
         else LaunchedEffect(Unit) { it.launchPermissionRequest() }
