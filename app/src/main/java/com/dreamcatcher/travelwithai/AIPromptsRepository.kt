@@ -2,7 +2,6 @@ package com.dreamcatcher.travelwithai
 
 import android.location.Location
 
-// Todo: refactor
 enum class MessageType(private val template: String) {
     INITIAL(
         "Tell me interesting things about this location: " +

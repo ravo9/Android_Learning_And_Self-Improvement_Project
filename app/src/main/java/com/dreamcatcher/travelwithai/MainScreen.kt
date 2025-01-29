@@ -35,6 +35,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -56,6 +57,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -97,33 +99,39 @@ fun MainScreen() {
             }
         }
 
-        ReviewDialog()
-        LazyColumn(
-            state = lazyListState,
+        Surface(
             modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background,
         ) {
-            item { ScreenTitle() }
-            item { ImageCarousel(viewModel) }
-            item { ActionRow(listOf(R.string.action_start to { viewModel.sendPrompt(MessageType.INITIAL) })) }
-            item { ActionRow(listOf(
-                R.string.history_of_this_place to { viewModel.sendPrompt(MessageType.HISTORY) },
-                R.string.restaurants_nearby to { viewModel.sendPrompt(MessageType.RESTAURANTS) },
-            ))}
-            item { ActionRow(listOf(R.string.tourist_spots to { viewModel.sendPrompt(MessageType.TOURIST_SPOTS) })) }
-            item { ActionRow(
-                listOf(R.string.safety_rules to { viewModel.sendPrompt(MessageType.SAFETY) }),
-                buttonColor = FirebrickRed
-            )}
-            item { ImagePreview(imageBitmap) }
-            item { ActionRow(
-                listOf(R.string.take_a_picture to {
-                    if (cameraPermissionState.status.isGranted) takePictureLauncher.launch(null)
-                    else cameraPermissionState.launchPermissionRequest()
-                }),
-                buttonColor = Blue500,
-            )}
-            item { PromptInput(viewModel) }
-            item { UiStateDisplay(uiState, lazyListState) }
+            ReviewDialog()
+            LazyColumn(
+                state = lazyListState,
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                item { ScreenTitle() }
+                item { ImageCarousel(viewModel) }
+                item { Location(viewModel) }
+                item { ActionRow(listOf(R.string.action_start to { viewModel.sendPrompt(MessageType.INITIAL) })) }
+                item { ActionRow(listOf(
+                    R.string.history_of_this_place to { viewModel.sendPrompt(MessageType.HISTORY) },
+                    R.string.restaurants_nearby to { viewModel.sendPrompt(MessageType.RESTAURANTS) },
+                ))}
+                item { ActionRow(listOf(R.string.tourist_spots to { viewModel.sendPrompt(MessageType.TOURIST_SPOTS) })) }
+                item { ActionRow(
+                    listOf(R.string.safety_rules to { viewModel.sendPrompt(MessageType.SAFETY) }),
+                    buttonColor = FirebrickRed
+                )}
+                item { ImagePreview(imageBitmap) }
+                item { ActionRow(
+                    listOf(R.string.take_a_picture to {
+                        if (cameraPermissionState.status.isGranted) takePictureLauncher.launch(null)
+                        else cameraPermissionState.launchPermissionRequest()
+                    }),
+                    buttonColor = Blue500,
+                )}
+                item { PromptInput(viewModel) }
+                item { UiStateDisplay(uiState, lazyListState) }
+            }
         }
     }
 }
@@ -146,7 +154,7 @@ fun ImageCarousel(mainViewModel: MainViewModel) {
             Card(
                 modifier = Modifier.padding(DefaultPaddingHalf).requiredSize(130.dp),
                 shape = RoundedCornerShape(DefaultRoundedCornerValue),
-                elevation = CardDefaults.cardElevation(50.dp),
+                elevation = CardDefaults.cardElevation(10.dp),
             ) {
                 Image(
                     painter = painterResource(image),
@@ -156,6 +164,17 @@ fun ImageCarousel(mainViewModel: MainViewModel) {
                 )
             }
         }
+    }
+}
+
+@Composable
+fun Location(mainViewModel: MainViewModel) {
+    Box(modifier = Modifier.fillMaxWidth().padding(DefaultPadding)) {
+        Text(
+            text = "Location:",
+            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+            modifier = Modifier.padding(bottom = DefaultPaddingHalf)
+        )
     }
 }
 
