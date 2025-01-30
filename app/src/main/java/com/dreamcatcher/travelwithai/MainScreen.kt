@@ -27,12 +27,16 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -54,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -252,7 +257,7 @@ fun ImageCarousel(mainViewModel: MainViewModel) {
 
 @Composable
 fun Location(location: String, locationInputStateIsPresent: Boolean) {
-    val textColour = if (locationInputStateIsPresent) Color.Gray else MaterialTheme.colorScheme.onSurface
+    val textColour = if (locationInputStateIsPresent) Color.LightGray else MaterialTheme.colorScheme.onSurface
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -260,8 +265,9 @@ fun Location(location: String, locationInputStateIsPresent: Boolean) {
             .padding(top = DefaultPadding)
     ) {
         Text(
-            text = "Location:",
+            text = "Your Location:",
             style = MaterialTheme.typography.bodyLarge.copy(color = textColour),
+            modifier = Modifier.padding(bottom = 5.dp)
         )
         Text(
             text = "$location",
@@ -279,6 +285,8 @@ fun LocationInput(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val keyboardController = LocalSoftwareKeyboardController.current
+        val focusManager = LocalFocusManager.current
         OutlinedTextField(
             value = locationInputState,
             onValueChange = onLocationChange,
@@ -305,7 +313,21 @@ fun LocationInput(
                 focusedLabelColor = MaterialTheme.colorScheme.primary,
                 unfocusedLabelColor = Color.Gray,
                 disabledBorderColor = Color.Gray
-            )
+            ),
+            trailingIcon = {
+                if (locationInputState.isNotEmpty()) {
+                    IconButton(onClick = {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                    }) {
+                        Icon(
+                            imageVector = Icons.Filled.Check,
+                            contentDescription = "Close Keyboard",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
         )
     }
 }
