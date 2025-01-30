@@ -85,6 +85,7 @@ fun MainScreen() {
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
     val uiState by viewModel.uiState.collectAsState()
     val locationState by viewModel.location.collectAsState()
+    var locationInputState by remember { mutableStateOf<String>("") }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
     val lazyListState = rememberLazyListState()
     val toastTextNoLocationPermissions = "Please enable location permissions in app settings or provide the location manually."
@@ -119,8 +120,13 @@ fun MainScreen() {
                     { viewModel.userAgreedLocation() },
                     { viewModel.userDeniedLocation() },
                 )
-                Location(locationState)
-                LocationInput()
+                Location(locationState, locationInputState.isNotEmpty())
+                LocationInput(
+                    locationInputState = locationInputState,
+                    onLocationChange = { newLocation ->
+                        locationInputState = newLocation
+                    }
+                )
             }
             item { ActionRow(listOf(R.string.action_start to {
                 RequestPermission(
@@ -222,7 +228,8 @@ fun ImageCarousel(mainViewModel: MainViewModel) {
 }
 
 @Composable
-fun Location(location: String) {
+fun Location(location: String, locationInputStateIsPresent: Boolean) {
+    val textColour = if (locationInputStateIsPresent) Color.Gray else MaterialTheme.colorScheme.onSurface
     Box(modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = DefaultPadding)
@@ -230,22 +237,23 @@ fun Location(location: String) {
     ) {
         Text(
             text = "Location: $location",
-            style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+            style = MaterialTheme.typography.bodyLarge.copy(color = textColour),
         )
     }
 }
 
 @Composable
-fun LocationInput() {
-    var location by rememberSaveable { mutableStateOf("") }
-
+fun LocationInput(
+    locationInputState: String,
+    onLocationChange: (String) -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         OutlinedTextField(
-            value = location,
-            onValueChange = { location = it },
+            value = locationInputState,
+            onValueChange = onLocationChange,
             placeholder = {
                 Text(
                     text = "e.g. 'Rome, Italy' or 'London, Piccadilly'",
