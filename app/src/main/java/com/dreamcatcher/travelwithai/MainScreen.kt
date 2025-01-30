@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,12 +22,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -87,7 +87,7 @@ fun MainScreen() {
     val locationState by viewModel.location.collectAsState()
     var locationInputState by remember { mutableStateOf<String>("") }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    val lazyListState = rememberLazyListState()
+    val scrollState = rememberScrollState()
     val toastTextNoLocationPermissions = "Please enable location permissions in app settings or provide the location manually."
     val toastTextNoCameraPermissions = "Camera permission is necessary for this feature."
     val fakeImageBitmap: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.london) // For screenshots
@@ -108,27 +108,24 @@ fun MainScreen() {
         color = MaterialTheme.colorScheme.background,
     ) {
         ReviewDialog()
-        LazyColumn(
-            state = lazyListState,
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            item { ScreenTitle() }
-            item { ImageCarousel(viewModel) }
-            item {
-                RequestPermission(
-                    locationPermissionState,
-                    { viewModel.userAgreedLocation() },
-                    { viewModel.userDeniedLocation() },
-                )
-                Location(locationState, locationInputState.isNotEmpty())
-                LocationInput(
-                    locationInputState = locationInputState,
-                    onLocationChange = { newLocation ->
-                        locationInputState = newLocation
-                    }
-                )
-            }
-            item { ActionRow(listOf(R.string.action_start to {
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
+            ScreenTitle()
+            ImageCarousel(viewModel)
+
+            RequestPermission(
+                locationPermissionState,
+                { viewModel.userAgreedLocation() },
+                { viewModel.userDeniedLocation() },
+            )
+            Location(locationState, locationInputState.isNotEmpty())
+            LocationInput(
+                locationInputState = locationInputState,
+                onLocationChange = { newLocation ->
+                    locationInputState = newLocation
+                }
+            )
+
+            ActionRow(listOf(R.string.action_start to {
                 if (locationInputState.isNotEmpty()) {
                     viewModel.sendPrompt(MessageType.INITIAL, manualLocation = locationInputState)
                 } else {
@@ -138,8 +135,8 @@ fun MainScreen() {
                         { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
                     )
                 }
-            })) }
-            item { ActionRow(listOf(
+            }))
+            ActionRow(listOf(
                 R.string.history_of_this_place to {
                     if (locationInputState.isNotEmpty()) {
                         viewModel.sendPrompt(MessageType.HISTORY, manualLocation = locationInputState)
@@ -162,8 +159,8 @@ fun MainScreen() {
                         )
                     }
                 },
-            )) }
-            item { ActionRow(listOf(R.string.tourist_spots to {
+            ))
+            ActionRow(listOf(R.string.tourist_spots to {
                 if (locationInputState.isNotEmpty()) {
                     viewModel.sendPrompt(MessageType.TOURIST_SPOTS, manualLocation = locationInputState)
                 } else {
@@ -173,8 +170,8 @@ fun MainScreen() {
                         { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
                     )
                 }
-            })) }
-            item { ActionRow(
+            }))
+            ActionRow(
                 listOf(R.string.safety_rules to {
                     if (locationInputState.isNotEmpty()) {
                         viewModel.sendPrompt(MessageType.SAFETY, manualLocation = locationInputState)
@@ -187,9 +184,10 @@ fun MainScreen() {
                     }
                 }),
                 buttonColor = FirebrickRed
-            )}
-            item { ImagePreview(imageBitmap) }
-            item { ActionRow(
+            )
+
+            ImagePreview(imageBitmap)
+            ActionRow(
                 listOf(R.string.take_a_picture to {
                     var triggerAction by remember { mutableStateOf(false) }
                     if (locationInputState.isNotEmpty()) {
@@ -213,9 +211,10 @@ fun MainScreen() {
                     }
                 }),
                 buttonColor = Blue500,
-            )}
-            item { PromptInput(viewModel) }
-            item { UiStateDisplay(uiState, lazyListState) }
+            )
+
+            PromptInput(viewModel)
+            UiStateDisplay(uiState, scrollState)
         }
     }
 }
@@ -406,7 +405,7 @@ fun PromptInput(mainViewModel: MainViewModel) {
 }
 
 @Composable
-fun UiStateDisplay(uiState: UiState, lazyListState: LazyListState) {
+fun UiStateDisplay(uiState: UiState, scrollState: ScrollState) {
     val scope = rememberCoroutineScope()
     val (text, color, isLoading) = when (uiState) {
         is UiState.Loading -> Triple(null, null, true)
@@ -418,8 +417,7 @@ fun UiStateDisplay(uiState: UiState, lazyListState: LazyListState) {
         Box(modifier = Modifier.fillMaxWidth().padding(DefaultPadding)) {
             CircularProgressIndicator(Modifier.size(180.dp).align(Alignment.Center))
         }
-        val itemsCount = lazyListState.layoutInfo.totalItemsCount
-        LaunchedEffect(Unit) { scope.launch { lazyListState.animateScrollToItem(itemsCount - 1) } }
+        LaunchedEffect(Unit) { scope.launch { scrollState.animateScrollTo(scrollState.maxValue) } }
     } else {
         text?.let {
             Box(
