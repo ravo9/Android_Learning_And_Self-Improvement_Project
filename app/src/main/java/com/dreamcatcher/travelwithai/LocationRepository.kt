@@ -18,10 +18,12 @@ class LocationRepository(context: Context) {
                 if (location != null) {
                     continuation.resume(location) {}
                 } else {
-                    continuation.resumeWithException(Exception("Location not found"))
+                    continuation.resume(null) {}
+//                    continuation.resumeWithException(Exception("Location not found"))
                 }
             }.addOnFailureListener { exception ->
-                continuation.resumeWithException(exception)
+                continuation.resume(null) {}
+//                continuation.resumeWithException(exception)
             }
         }
     }

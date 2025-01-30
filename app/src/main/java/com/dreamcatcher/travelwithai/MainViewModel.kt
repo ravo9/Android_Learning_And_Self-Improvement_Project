@@ -21,8 +21,23 @@ class MainViewModel(
     private val _uiState: MutableStateFlow<UiState> = MutableStateFlow(UiState.Initial)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    private val _location: MutableStateFlow<String> = MutableStateFlow("Looking for your physical location by GPS...")
+    val location: StateFlow<String> = _location.asStateFlow()
+
     init {
         initializeGenerativeModel()
+    }
+
+    fun userAgreedLocation() {
+        viewModelScope.launch {
+            val location = locationRepository.getCurrentLocation()
+            if (location == null) _location.value = "Last location not found."
+            else _location.value = location.toDetailedString()
+        }
+    }
+
+    fun userDeniedLocation() {
+        _location.value = "Please check your location permissions."
     }
 
     private fun initializeGenerativeModel() {
@@ -62,6 +77,16 @@ class MainViewModel(
 
     private fun enhancePrompt(messageType: MessageType, location: Location, prompt: String?) =
         messageType.getMessage(location, prompt ?: "").replace("**", "")
+
+    fun Location.toDetailedString(): String {
+        return buildString {
+            append("\n")
+            append("• Latitude: %.4f\n".format(latitude))
+            append("• Longitude: %.4f\n".format(longitude))
+            if (hasAltitude()) append("• Altitude: %.2f meters\n".format(altitude))
+            if (hasAccuracy()) append("• Accuracy: %.2f meters\n".format(accuracy))
+        }
+    }
 }
 
 class BakingViewModelFactory(

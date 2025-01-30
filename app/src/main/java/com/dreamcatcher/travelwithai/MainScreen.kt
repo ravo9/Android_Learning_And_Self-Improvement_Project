@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -57,7 +58,6 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -70,6 +70,7 @@ import com.dreamcatcher.travelwithai.ui.theme.UIConstants.DefaultPaddingQuarter
 import com.dreamcatcher.travelwithai.ui.theme.UIConstants.DefaultRoundedCornerValue
 import com.dreamcatcher.travelwithai.ui.theme.VeryLightGrey
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.google.android.play.core.review.ReviewManagerFactory
@@ -80,58 +81,110 @@ import kotlinx.coroutines.launch
 fun MainScreen() {
     val context = LocalContext.current
     val viewModel: MainViewModel = viewModel(factory = BakingViewModelFactory(context))
-    val cameraPermissionState = rememberPermissionState(permission = Manifest.permission.CAMERA)
+    val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+    val uiState by viewModel.uiState.collectAsState()
+    val locationState by viewModel.location.collectAsState()
+    var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    val lazyListState = rememberLazyListState()
+    val toastTextNoLocationPermissions = "Please enable location permissions in app settings or provide the location manually."
+    val toastTextNoCameraPermissions = "Camera permission is necessary for this feature."
     val fakeImageBitmap: Bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.london) // For screenshots
+    val takePictureLauncher = rememberLauncherForActivityResult (
+        ActivityResultContracts.TakePicturePreview()
+    ) {
+        it?.let {
+            imageBitmap = it
+            viewModel.sendPrompt(MessageType.PHOTO, null, it)
+//            viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap)
+        }
+    }
 
     updateAppOpeningsCounter(context)
 
-    RequestPermission(Manifest.permission.ACCESS_FINE_LOCATION) {
-        val uiState by viewModel.uiState.collectAsState()
-        var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-        val lazyListState = rememberLazyListState()
-        val takePictureLauncher = rememberLauncherForActivityResult (
-            ActivityResultContracts.TakePicturePreview()
-        ) {
-            it?.let {
-                imageBitmap = it
-                viewModel.sendPrompt(MessageType.PHOTO, null, it)
-//                viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap)
-            }
-        }
-
-        Surface(
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.background,
+    ) {
+        ReviewDialog()
+        LazyColumn(
+            state = lazyListState,
             modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background,
         ) {
-            ReviewDialog()
-            LazyColumn(
-                state = lazyListState,
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                item { ScreenTitle() }
-                item { ImageCarousel(viewModel) }
-                item { Location(viewModel) }
-                item { ActionRow(listOf(R.string.action_start to { viewModel.sendPrompt(MessageType.INITIAL) })) }
-                item { ActionRow(listOf(
-                    R.string.history_of_this_place to { viewModel.sendPrompt(MessageType.HISTORY) },
-                    R.string.restaurants_nearby to { viewModel.sendPrompt(MessageType.RESTAURANTS) },
-                ))}
-                item { ActionRow(listOf(R.string.tourist_spots to { viewModel.sendPrompt(MessageType.TOURIST_SPOTS) })) }
-                item { ActionRow(
-                    listOf(R.string.safety_rules to { viewModel.sendPrompt(MessageType.SAFETY) }),
-                    buttonColor = FirebrickRed
-                )}
-                item { ImagePreview(imageBitmap) }
-                item { ActionRow(
-                    listOf(R.string.take_a_picture to {
-                        if (cameraPermissionState.status.isGranted) takePictureLauncher.launch(null)
-                        else cameraPermissionState.launchPermissionRequest()
-                    }),
-                    buttonColor = Blue500,
-                )}
-                item { PromptInput(viewModel) }
-                item { UiStateDisplay(uiState, lazyListState) }
+            item { ScreenTitle() }
+            item { ImageCarousel(viewModel) }
+            item {
+                RequestPermission(
+                    locationPermissionState,
+                    { viewModel.userAgreedLocation() },
+                    { viewModel.userDeniedLocation() },
+                )
+                Location(locationState)
             }
+            item { ActionRow(listOf(R.string.action_start to {
+                RequestPermission(
+                    locationPermissionState,
+                    { viewModel.sendPrompt(MessageType.INITIAL) },
+                    { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                )
+            })) }
+            item { ActionRow(listOf(
+                R.string.history_of_this_place to {
+                    RequestPermission(
+                        locationPermissionState,
+                        { viewModel.sendPrompt(MessageType.HISTORY) },
+                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                    )
+                },
+                R.string.restaurants_nearby to {
+                    RequestPermission(
+                        locationPermissionState,
+                        { viewModel.sendPrompt(MessageType.RESTAURANTS) },
+                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                    )
+                },
+            )) }
+            item { ActionRow(listOf(R.string.tourist_spots to {
+                RequestPermission(
+                    locationPermissionState,
+                    { viewModel.sendPrompt(MessageType.TOURIST_SPOTS) },
+                    { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                )
+            })) }
+            item { ActionRow(
+                listOf(R.string.safety_rules to {
+                    RequestPermission(
+                        locationPermissionState,
+                        { viewModel.sendPrompt(MessageType.SAFETY) },
+                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                    )
+                }),
+                buttonColor = FirebrickRed
+            )}
+            item { ImagePreview(imageBitmap) }
+            item { ActionRow(
+                listOf(R.string.take_a_picture to {
+                    var triggerAction by remember { mutableStateOf(false) }
+                    RequestPermission(
+                        locationPermissionState,
+                        { triggerAction = true },
+                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                    )
+                    LaunchedEffect(cameraPermissionState.status, triggerAction) {
+                        if (triggerAction) {
+                            if (cameraPermissionState.status.isGranted) takePictureLauncher.launch(null)
+                            else {
+                                Toast.makeText(context, toastTextNoCameraPermissions, Toast.LENGTH_SHORT,).show()
+                                cameraPermissionState.launchPermissionRequest()
+                            }
+                            triggerAction = false
+                        }
+                    }
+                }),
+                buttonColor = Blue500,
+            )}
+            item { PromptInput(viewModel) }
+            item { UiStateDisplay(uiState, lazyListState) }
         }
     }
 }
@@ -168,12 +221,11 @@ fun ImageCarousel(mainViewModel: MainViewModel) {
 }
 
 @Composable
-fun Location(mainViewModel: MainViewModel) {
+fun Location(location: String) {
     Box(modifier = Modifier.fillMaxWidth().padding(DefaultPadding)) {
         Text(
-            text = "Location:",
+            text = "Location: $location",
             style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-            modifier = Modifier.padding(bottom = DefaultPaddingHalf)
         )
     }
 }
@@ -181,15 +233,16 @@ fun Location(mainViewModel: MainViewModel) {
 @Composable
 fun ActionButton(
     text: Int,
-    onClick: () -> Unit,
+    onClick: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     buttonColor: Color = MaterialTheme.colorScheme.primary,
     enabled: Boolean = true
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
+    var triggerAction by remember { mutableStateOf(false) }
     Button(
         onClick = {
-            onClick()
+            triggerAction = true
             keyboardController?.hide()
         },
         modifier = modifier.fillMaxWidth().height(UIConstants.ButtonHeight),
@@ -199,11 +252,15 @@ fun ActionButton(
     ) {
         Text(text = stringResource(text), textAlign = TextAlign.Center)
     }
+    if (triggerAction) {
+        onClick()
+        triggerAction = false
+    }
 }
 
 @Composable
 fun ActionRow(
-    buttons: List<Pair<Int, () -> Unit>>,
+    buttons: List<Pair<Int, @Composable () -> Unit>>,
     modifier: Modifier = Modifier,
     buttonColor: Color = MaterialTheme.colorScheme.primary
 ) {
@@ -299,11 +356,18 @@ fun UiStateDisplay(uiState: UiState, lazyListState: LazyListState) {
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun RequestPermission(permission: String, onPermissionGranted: @Composable () -> Unit) {
-    rememberPermissionState(permission).let {
-        if (it.status.isGranted) onPermissionGranted()
-        else LaunchedEffect(Unit) { it.launchPermissionRequest() }
-    }
+fun RequestPermission(
+    permissionState: PermissionState,
+    onPermissionGranted: () -> Unit,
+    onPermissionDenied: () -> Unit
+) {
+    LaunchedEffect(permissionState.status) { when {
+        permissionState.status.isGranted -> onPermissionGranted()
+        !permissionState.status.isGranted -> {
+            permissionState.launchPermissionRequest()
+            onPermissionDenied()
+        }
+    }}
 }
 
 @Composable
@@ -344,3 +408,4 @@ fun updateAppOpeningsCounter(context: Context) {
         .putInt("app_open_count", (sharedPreferences.getInt("app_open_count", 0)) + 1)
         .apply()
 }
+// 417
