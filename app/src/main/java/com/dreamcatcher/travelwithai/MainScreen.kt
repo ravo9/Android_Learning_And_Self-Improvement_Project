@@ -477,7 +477,7 @@ fun ReviewDialog() {
     val sharedPreferences = context.getSharedPreferences("app_preferences", Context.MODE_PRIVATE)
     val appOpenCount = sharedPreferences.getInt("app_open_count", 0)
     val hasReviewed = sharedPreferences.getBoolean("has_reviewed", false)
-    val shouldShowDialog = (appOpenCount == 2 || appOpenCount == 4) && !hasReviewed
+    val shouldShowDialog = (appOpenCount == 2 || appOpenCount == 5 || appOpenCount == 12) && !hasReviewed
     var showDialog by remember { mutableStateOf(shouldShowDialog) }
     val confirmButtonClick = {
         requestReview(context, sharedPreferences)
@@ -509,4 +509,3 @@ fun updateAppOpeningsCounter(context: Context) {
         .putInt("app_open_count", (sharedPreferences.getInt("app_open_count", 0)) + 1)
         .apply()
 }
-// 417
