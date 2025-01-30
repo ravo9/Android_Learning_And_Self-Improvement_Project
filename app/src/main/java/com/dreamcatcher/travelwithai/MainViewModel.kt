@@ -51,11 +51,16 @@ class MainViewModel(
         return imagesRepository.getAIGeneratedImages()
     }
 
-    fun sendPrompt(messageType: MessageType, prompt: String? = null, photo: Bitmap? = null) {
+    fun sendPrompt(
+        messageType: MessageType,
+        prompt: String? = null,
+        photo: Bitmap? = null,
+        manualLocation: String? = null
+    ) {
         _uiState.value = UiState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val location = locationRepository.getCurrentLocation()
+                val location = manualLocation ?: locationRepository.getCurrentLocation()
 //                val location = locationRepository.getFakeLocation() // For screenshots
                 if (location == null) {
                     _uiState.value = UiState.Error("Location not found.")
@@ -65,7 +70,11 @@ class MainViewModel(
                     _uiState.value = UiState.Error("Picture taking error.")
                     return@launch
                 }
-                val enhancedPrompt = enhancePrompt(messageType, location, prompt)
+                val enhancedPrompt = if (manualLocation != null) {
+                    enhancePrompt(messageType, location as String, prompt)
+                } else {
+                    enhancePrompt(messageType, location as Location, prompt)
+                }
                 val response = generativeModelRepository.generateResponse(enhancedPrompt, photo)
                 if (response != null) _uiState.value = UiState.Success(response)
                 else _uiState.value = UiState.Error("Error (received prompt is empty).")
@@ -76,6 +85,9 @@ class MainViewModel(
     }
 
     private fun enhancePrompt(messageType: MessageType, location: Location, prompt: String?) =
+        messageType.getMessage(location, prompt ?: "").replace("**", "")
+
+    private fun enhancePrompt(messageType: MessageType, location: String, prompt: String?) =
         messageType.getMessage(location, prompt ?: "").replace("**", "")
 
     fun Location.toDetailedString(): String {

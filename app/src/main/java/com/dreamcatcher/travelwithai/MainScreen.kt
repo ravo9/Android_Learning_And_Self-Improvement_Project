@@ -129,42 +129,62 @@ fun MainScreen() {
                 )
             }
             item { ActionRow(listOf(R.string.action_start to {
-                RequestPermission(
-                    locationPermissionState,
-                    { viewModel.sendPrompt(MessageType.INITIAL) },
-                    { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
-                )
+                if (locationInputState.isNotEmpty()) {
+                    viewModel.sendPrompt(MessageType.INITIAL, manualLocation = locationInputState)
+                } else {
+                    RequestPermission(
+                        locationPermissionState,
+                        { viewModel.sendPrompt(MessageType.INITIAL) },
+                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                    )
+                }
             })) }
             item { ActionRow(listOf(
                 R.string.history_of_this_place to {
-                    RequestPermission(
-                        locationPermissionState,
-                        { viewModel.sendPrompt(MessageType.HISTORY) },
-                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
-                    )
+                    if (locationInputState.isNotEmpty()) {
+                        viewModel.sendPrompt(MessageType.HISTORY, manualLocation = locationInputState)
+                    } else {
+                        RequestPermission(
+                            locationPermissionState,
+                            { viewModel.sendPrompt(MessageType.HISTORY) },
+                            { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                        )
+                    }
                 },
                 R.string.restaurants_nearby to {
-                    RequestPermission(
-                        locationPermissionState,
-                        { viewModel.sendPrompt(MessageType.RESTAURANTS) },
-                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
-                    )
+                    if (locationInputState.isNotEmpty()) {
+                        viewModel.sendPrompt(MessageType.RESTAURANTS, manualLocation = locationInputState)
+                    } else {
+                        RequestPermission(
+                            locationPermissionState,
+                            { viewModel.sendPrompt(MessageType.RESTAURANTS) },
+                            { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                        )
+                    }
                 },
             )) }
             item { ActionRow(listOf(R.string.tourist_spots to {
-                RequestPermission(
-                    locationPermissionState,
-                    { viewModel.sendPrompt(MessageType.TOURIST_SPOTS) },
-                    { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
-                )
+                if (locationInputState.isNotEmpty()) {
+                    viewModel.sendPrompt(MessageType.TOURIST_SPOTS, manualLocation = locationInputState)
+                } else {
+                    RequestPermission(
+                        locationPermissionState,
+                        { viewModel.sendPrompt(MessageType.TOURIST_SPOTS) },
+                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                    )
+                }
             })) }
             item { ActionRow(
                 listOf(R.string.safety_rules to {
-                    RequestPermission(
-                        locationPermissionState,
-                        { viewModel.sendPrompt(MessageType.SAFETY) },
-                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
-                    )
+                    if (locationInputState.isNotEmpty()) {
+                        viewModel.sendPrompt(MessageType.SAFETY, manualLocation = locationInputState)
+                    } else {
+                        RequestPermission(
+                            locationPermissionState,
+                            { viewModel.sendPrompt(MessageType.SAFETY) },
+                            { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                        )
+                    }
                 }),
                 buttonColor = FirebrickRed
             )}
@@ -172,11 +192,15 @@ fun MainScreen() {
             item { ActionRow(
                 listOf(R.string.take_a_picture to {
                     var triggerAction by remember { mutableStateOf(false) }
-                    RequestPermission(
-                        locationPermissionState,
-                        { triggerAction = true },
-                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
-                    )
+                    if (locationInputState.isNotEmpty()) {
+                        triggerAction = true
+                    } else {
+                        RequestPermission(
+                            locationPermissionState,
+                            { triggerAction = true },
+                            { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                        )
+                    }
                     LaunchedEffect(cameraPermissionState.status, triggerAction) {
                         if (triggerAction) {
                             if (cameraPermissionState.status.isGranted) takePictureLauncher.launch(null)
