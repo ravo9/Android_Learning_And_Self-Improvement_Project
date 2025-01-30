@@ -120,6 +120,7 @@ fun MainScreen() {
                     { viewModel.userDeniedLocation() },
                 )
                 Location(locationState)
+                LocationInput()
             }
             item { ActionRow(listOf(R.string.action_start to {
                 RequestPermission(
@@ -222,10 +223,53 @@ fun ImageCarousel(mainViewModel: MainViewModel) {
 
 @Composable
 fun Location(location: String) {
-    Box(modifier = Modifier.fillMaxWidth().padding(DefaultPadding)) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = DefaultPadding)
+        .padding(top = DefaultPadding)
+    ) {
         Text(
             text = "Location: $location",
             style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+        )
+    }
+}
+
+@Composable
+fun LocationInput() {
+    var location by rememberSaveable { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        OutlinedTextField(
+            value = location,
+            onValueChange = { location = it },
+            placeholder = {
+                Text(
+                    text = "e.g. 'Rome, Italy' or 'London, Piccadilly'",
+                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Gray)
+                )
+            },
+            label = {
+                Text(
+                    text = "You can also provide another location",
+                    style = MaterialTheme.typography.bodyLarge.copy(color = Color.Gray)
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(DefaultPadding)
+                .clip(RoundedCornerShape(4.dp)),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = Color.Gray,
+                focusedLabelColor = MaterialTheme.colorScheme.primary,
+                unfocusedLabelColor = Color.Gray,
+                disabledBorderColor = Color.Gray
+            )
         )
     }
 }

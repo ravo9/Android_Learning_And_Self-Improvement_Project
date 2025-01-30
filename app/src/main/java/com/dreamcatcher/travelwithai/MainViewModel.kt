@@ -84,7 +84,7 @@ class MainViewModel(
             append("• Latitude: %.4f\n".format(latitude))
             append("• Longitude: %.4f\n".format(longitude))
             if (hasAltitude()) append("• Altitude: %.2f meters\n".format(altitude))
-            if (hasAccuracy()) append("• Accuracy: %.2f meters\n".format(accuracy))
+            if (hasAccuracy()) append("• Accuracy: %.2f meters".format(accuracy))
         }
     }
 }
