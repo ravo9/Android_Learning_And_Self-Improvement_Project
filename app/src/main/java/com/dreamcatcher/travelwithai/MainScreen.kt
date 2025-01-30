@@ -254,14 +254,19 @@ fun ImageCarousel(mainViewModel: MainViewModel) {
 @Composable
 fun Location(location: String, locationInputStateIsPresent: Boolean) {
     val textColour = if (locationInputStateIsPresent) Color.Gray else MaterialTheme.colorScheme.onSurface
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = DefaultPadding)
-        .padding(top = DefaultPadding)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = DefaultPadding)
+            .padding(top = DefaultPadding)
     ) {
         Text(
-            text = "Location: $location",
+            text = "Location:",
             style = MaterialTheme.typography.bodyLarge.copy(color = textColour),
+        )
+        Text(
+            text = "$location",
+            style = MaterialTheme.typography.bodyMedium.copy(color = textColour),
         )
     }
 }

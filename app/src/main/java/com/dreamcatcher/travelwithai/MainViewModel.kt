@@ -92,7 +92,6 @@ class MainViewModel(
 
     fun Location.toDetailedString(): String {
         return buildString {
-            append("\n")
             append("• Latitude: %.4f\n".format(latitude))
             append("• Longitude: %.4f\n".format(longitude))
             if (hasAltitude()) append("• Altitude: %.2f meters\n".format(altitude))
