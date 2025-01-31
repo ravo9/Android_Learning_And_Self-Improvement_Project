@@ -101,8 +101,11 @@ fun MainScreen() {
     ) {
         it?.let {
             imageBitmap = it
-            viewModel.sendPrompt(MessageType.PHOTO, null, it)
-//            viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap)
+            if (locationInputState.isNotEmpty()) {
+                viewModel.sendPrompt(MessageType.PHOTO, null, it, manualLocation = locationInputState)
+            } else {
+                viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap)
+            }
         }
     }
 
@@ -218,7 +221,7 @@ fun MainScreen() {
                 buttonColor = Blue500,
             )
 
-            PromptInput(viewModel)
+            PromptInput(viewModel, locationInputState, locationPermissionState, context, toastTextNoLocationPermissions)
             UiStateDisplay(uiState, scrollState)
         }
     }
@@ -400,8 +403,15 @@ fun ImagePreview(imageBitmap: Bitmap?) {
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun PromptInput(mainViewModel: MainViewModel) {
+fun PromptInput(
+    mainViewModel: MainViewModel,
+    locationInputState: String,
+    locationPermissionState: PermissionState,
+    context: Context,
+    toastTextNoLocationPermissions: String
+) {
     var prompt by rememberSaveable { mutableStateOf("") }
     Row(modifier = Modifier.padding(DefaultPadding).padding(top = DefaultPaddingHalf)) {
         OutlinedTextField(
@@ -419,7 +429,17 @@ fun PromptInput(mainViewModel: MainViewModel) {
         )
         ActionButton(
             text = R.string.action_go,
-            onClick = { mainViewModel.sendPrompt(MessageType.CUSTOM, prompt) },
+            onClick = {
+                if (locationInputState.isNotEmpty()) {
+                    mainViewModel.sendPrompt(MessageType.CUSTOM, prompt, manualLocation = locationInputState)
+                } else {
+                    RequestPermission(
+                        locationPermissionState,
+                        { mainViewModel.sendPrompt(MessageType.CUSTOM, prompt) },
+                        { Toast.makeText(context, toastTextNoLocationPermissions, Toast.LENGTH_SHORT,).show() },
+                    )
+                }
+            },
             enabled = prompt.isNotEmpty(),
             modifier = Modifier.align(Alignment.CenterVertically).fillMaxWidth(0.225f),
         )
