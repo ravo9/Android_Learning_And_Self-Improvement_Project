@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.text.replace
 
 class MainViewModel(
     private val locationRepository: LocationRepository,
@@ -76,7 +77,7 @@ class MainViewModel(
                     enhancePrompt(messageType, location as Location, prompt)
                 }
                 val response = generativeModelRepository.generateResponse(enhancedPrompt, photo)
-                if (response != null) _uiState.value = UiState.Success(response)
+                if (response != null) _uiState.value = UiState.Success(cleanResponse(response))
                 else _uiState.value = UiState.Error("Error (received prompt is empty).")
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.localizedMessage ?: "Sending prompt error.")
@@ -85,10 +86,12 @@ class MainViewModel(
     }
 
     private fun enhancePrompt(messageType: MessageType, location: Location, prompt: String?) =
-        messageType.getMessage(location, prompt ?: "").replace("**", "")
+        messageType.getMessage(location, prompt ?: "")
 
     private fun enhancePrompt(messageType: MessageType, location: String, prompt: String?) =
-        messageType.getMessage(location, prompt ?: "").replace("**", "")
+        messageType.getMessage(location, prompt ?: "")
+
+    private fun cleanResponse(response: String) = response.replace("**", "")
 
     fun Location.toDetailedString(): String {
         return buildString {

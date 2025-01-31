@@ -104,7 +104,8 @@ fun MainScreen() {
             if (locationInputState.isNotEmpty()) {
                 viewModel.sendPrompt(MessageType.PHOTO, null, it, manualLocation = locationInputState)
             } else {
-                viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap)
+                viewModel.sendPrompt(MessageType.PHOTO, null, it)
+//                viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap) // For screenshots
             }
         }
     }
@@ -515,10 +516,12 @@ fun ReviewDialog() {
 }
 
 fun requestReview(context: Context, sharedPreferences: SharedPreferences) {
-    sharedPreferences.edit().putBoolean("has_reviewed", true).apply()
     val reviewManager = ReviewManagerFactory.create(context)
     reviewManager.requestReviewFlow().addOnCompleteListener { task ->
-        if (task.isSuccessful) reviewManager.launchReviewFlow(context as Activity, task.result)
+        if (task.isSuccessful) {
+            reviewManager.launchReviewFlow(context as Activity, task.result)
+            sharedPreferences.edit().putBoolean("has_reviewed", true).apply()
+        }
     }
 }
 
