@@ -25,9 +25,7 @@ class MainViewModel(
     private val _location: MutableStateFlow<String> = MutableStateFlow("Looking for your physical location by GPS...")
     val location: StateFlow<String> = _location.asStateFlow()
 
-    init {
-        initializeGenerativeModel()
-    }
+    init { initializeGenerativeModel() }
 
     fun userAgreedLocation() {
         viewModelScope.launch {
@@ -62,6 +60,7 @@ class MainViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val location = manualLocation ?: locationRepository.getCurrentLocation()
+                // Todo: Update location in UI in this place.
 //                val location = locationRepository.getFakeLocation() // For screenshots
                 if (location == null) {
                     _uiState.value = UiState.Error("Location not found.")

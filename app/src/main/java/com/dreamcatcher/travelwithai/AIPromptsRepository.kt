@@ -51,19 +51,16 @@ enum class MessageType(private val template: String) {
                 "Do not mention these values in response. Don't confirm you understand me."
     );
 
-    fun getMessage(location: String, prompt: String = ""): String {
-        return template
+    fun getMessage(location: String, prompt: String = "") =
+        template
             .replace("{location}", location)
             .replace("{prompt}", prompt)
-    }
 
-    fun getMessage(location: Location, prompt: String = ""): String {
-        return template
+    fun getMessage(location: Location, prompt: String = "") =
+        template
             .replace("{location}", getLocationString(location))
             .replace("{prompt}", prompt)
-    }
 
-    fun getLocationString(location: Location): String {
-        return "Latitude: ${location.latitude}, Longitude: ${location.longitude}."
-    }
+    fun getLocationString(location: Location) =
+        "Latitude: ${location.latitude}, Longitude: ${location.longitude}."
 }

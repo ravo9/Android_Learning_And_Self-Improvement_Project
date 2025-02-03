@@ -102,7 +102,7 @@ fun MainScreen() {
         it?.let {
             imageBitmap = it
             if (locationInputState.isNotEmpty()) {
-                viewModel.sendPrompt(MessageType.PHOTO, null, it, manualLocation = locationInputState)
+                viewModel.sendPrompt(MessageType.PHOTO, null, it, locationInputState)
             } else {
                 viewModel.sendPrompt(MessageType.PHOTO, null, it)
 //                viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap) // For screenshots
@@ -120,7 +120,6 @@ fun MainScreen() {
         Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
             ScreenTitle()
             ImageCarousel(viewModel)
-
             RequestPermission(
                 locationPermissionState,
                 { viewModel.userAgreedLocation() },
@@ -129,11 +128,8 @@ fun MainScreen() {
             Location(locationState, locationInputState.isNotEmpty())
             LocationInput(
                 locationInputState = locationInputState,
-                onLocationChange = { newLocation ->
-                    locationInputState = newLocation
-                }
+                onLocationChange = { newLocation -> locationInputState = newLocation },
             )
-
             ActionRow(listOf(R.string.action_start to {
                 if (locationInputState.isNotEmpty()) {
                     viewModel.sendPrompt(MessageType.INITIAL, manualLocation = locationInputState)
@@ -194,7 +190,6 @@ fun MainScreen() {
                 }),
                 buttonColor = FirebrickRed
             )
-
             ImagePreview(imageBitmap)
             ActionRow(
                 listOf(R.string.take_a_picture to {
@@ -221,7 +216,6 @@ fun MainScreen() {
                 }),
                 buttonColor = Blue500,
             )
-
             PromptInput(viewModel, locationInputState, locationPermissionState, context, toastTextNoLocationPermissions)
             UiStateDisplay(uiState, scrollState)
         }
@@ -371,7 +365,7 @@ fun ActionRow(
     buttonColor: Color = MaterialTheme.colorScheme.primary
 ) {
     Row(
-        modifier = modifier.padding(horizontal = DefaultPadding, vertical = DefaultPaddingHalf),
+        modifier.padding(horizontal = DefaultPadding, vertical = DefaultPaddingHalf),
         horizontalArrangement = Arrangement.spacedBy(DefaultPaddingQuarter)
     ) {
         buttons.forEach { (text, action) ->
@@ -387,7 +381,6 @@ fun ActionRow(
 
 @Composable
 fun ImagePreview(imageBitmap: Bitmap?) {
-    val fakeImagePainterResource = painterResource(R.drawable.london) // For screenshots
     imageBitmap?.let { bitmap ->
         Column(
             modifier = Modifier.fillMaxWidth().padding(DefaultPadding),
@@ -395,7 +388,7 @@ fun ImagePreview(imageBitmap: Bitmap?) {
         ) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
-//                painter = fakeImagePainterResource,
+//                painter = painterResource(R.drawable.london) // For screenshots,
                 contentDescription = null,
                 modifier = Modifier.size(200.dp).clip(RoundedCornerShape(DefaultRoundedCornerValue)),
                 contentScale = ContentScale.Crop,
@@ -470,7 +463,7 @@ fun UiStateDisplay(uiState: UiState, scrollState: ScrollState) {
                     .background(VeryLightGrey, RoundedCornerShape(12.dp))
                     .padding(DefaultPadding)
             ) {
-                Text(it, modifier = Modifier.fillMaxWidth(), color = color!!)
+                Text(it, Modifier.fillMaxWidth(), color!!)
             }
         }
     }
