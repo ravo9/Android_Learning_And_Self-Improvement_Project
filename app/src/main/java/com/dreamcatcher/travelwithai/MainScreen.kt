@@ -9,9 +9,16 @@ import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +29,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -117,7 +122,9 @@ fun MainScreen() {
         color = MaterialTheme.colorScheme.background,
     ) {
         ReviewDialog()
-        Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(scrollState)) {
             ScreenTitle()
             ImageCarousel(viewModel)
             RequestPermission(
@@ -224,7 +231,10 @@ fun MainScreen() {
 
 @Composable
 fun ScreenTitle() {
-    Box(modifier = Modifier.fillMaxWidth().padding(DefaultPadding).padding(top = 20.dp)) {
+    Box(modifier = Modifier
+        .fillMaxWidth()
+        .padding(DefaultPadding)
+        .padding(top = 20.dp)) {
         Text(
             text = stringResource(R.string.main_screen_title).uppercase(),
             style = MaterialTheme.typography.titleLarge.copy(letterSpacing = 0.8.sp),
@@ -235,12 +245,35 @@ fun ScreenTitle() {
 
 @Composable
 fun ImageCarousel(mainViewModel: MainViewModel) {
-    LazyRow(modifier = Modifier.fillMaxWidth()) {
-        itemsIndexed(mainViewModel.getAIGeneratedImages()) { _, image ->
+    val scrollState = rememberScrollState()
+    val infiniteTransition = rememberInfiniteTransition()
+    val animatedScroll by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = scrollState.maxValue.toFloat(),
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 22000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "",
+    )
+
+    LaunchedEffect(animatedScroll) {
+        scrollState.scrollTo(animatedScroll.toInt())
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(scrollState)
+    ) {
+        val images = mainViewModel.getAIGeneratedImages()
+        val loopedImages = images // + images // Duplicate for seamless loop
+
+        loopedImages.forEach { image ->
             Card(
                 modifier = Modifier.padding(DefaultPaddingHalf).requiredSize(130.dp),
                 shape = RoundedCornerShape(DefaultRoundedCornerValue),
-                elevation = CardDefaults.cardElevation(10.dp),
+                elevation = CardDefaults.cardElevation(20.dp),
             ) {
                 Image(
                     painter = painterResource(image),
@@ -345,7 +378,9 @@ fun ActionButton(
             triggerAction = true
             keyboardController?.hide()
         },
-        modifier = modifier.fillMaxWidth().height(UIConstants.ButtonHeight),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(UIConstants.ButtonHeight),
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(containerColor = buttonColor),
         elevation = ButtonDefaults.elevatedButtonElevation()
@@ -372,7 +407,9 @@ fun ActionRow(
             ActionButton(
                 text = text,
                 onClick = action,
-                modifier = Modifier.weight(1.0f).align(Alignment.CenterVertically),
+                modifier = Modifier
+                    .weight(1.0f)
+                    .align(Alignment.CenterVertically),
                 buttonColor = buttonColor
             )
         }
@@ -383,14 +420,18 @@ fun ActionRow(
 fun ImagePreview(imageBitmap: Bitmap?) {
     imageBitmap?.let { bitmap ->
         Column(
-            modifier = Modifier.fillMaxWidth().padding(DefaultPadding),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(DefaultPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Image(
                 bitmap = bitmap.asImageBitmap(),
 //                painter = painterResource(R.drawable.london) // For screenshots,
                 contentDescription = null,
-                modifier = Modifier.size(200.dp).clip(RoundedCornerShape(DefaultRoundedCornerValue)),
+                modifier = Modifier
+                    .size(200.dp)
+                    .clip(RoundedCornerShape(DefaultRoundedCornerValue)),
                 contentScale = ContentScale.Crop,
             )
         }
@@ -407,12 +448,17 @@ fun PromptInput(
     toastTextNoLocationPermissions: String
 ) {
     var prompt by rememberSaveable { mutableStateOf("") }
-    Row(modifier = Modifier.padding(DefaultPadding).padding(top = DefaultPaddingHalf)) {
+    Row(modifier = Modifier
+        .padding(DefaultPadding)
+        .padding(top = DefaultPaddingHalf)) {
         OutlinedTextField(
             value = prompt,
             onValueChange = { prompt = it },
             placeholder = { Text(stringResource(R.string.prompt_placeholder)) },
-            modifier = Modifier.weight(0.8f).padding(end = DefaultPadding).align(Alignment.CenterVertically),
+            modifier = Modifier
+                .weight(0.8f)
+                .padding(end = DefaultPadding)
+                .align(Alignment.CenterVertically),
             shape = RoundedCornerShape(12.dp),
             minLines = 2,
             colors = OutlinedTextFieldDefaults.colors(
@@ -435,7 +481,9 @@ fun PromptInput(
                 }
             },
             enabled = prompt.isNotEmpty(),
-            modifier = Modifier.align(Alignment.CenterVertically).fillMaxWidth(0.225f),
+            modifier = Modifier
+                .align(Alignment.CenterVertically)
+                .fillMaxWidth(0.225f),
         )
     }
 }
@@ -450,8 +498,13 @@ fun UiStateDisplay(uiState: UiState, scrollState: ScrollState) {
         else -> Triple(stringResource(R.string.results_placeholder), MaterialTheme.colorScheme.onSurface, false)
     }
     if (isLoading) {
-        Box(modifier = Modifier.fillMaxWidth().padding(DefaultPadding)) {
-            CircularProgressIndicator(Modifier.size(180.dp).align(Alignment.Center))
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .padding(DefaultPadding)) {
+            CircularProgressIndicator(
+                Modifier
+                    .size(180.dp)
+                    .align(Alignment.Center))
         }
         LaunchedEffect(Unit) { scope.launch { scrollState.animateScrollTo(scrollState.maxValue) } }
     } else {
