@@ -108,6 +108,7 @@ fun MainScreen() {
             imageBitmap = it
             if (locationInputState.isNotEmpty()) {
                 viewModel.sendPrompt(MessageType.PHOTO, null, it, locationInputState)
+//                viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap, locationInputState) // For screenshots
             } else {
                 viewModel.sendPrompt(MessageType.PHOTO, null, it)
 //                viewModel.sendPrompt(MessageType.PHOTO, null, fakeImageBitmap) // For screenshots
